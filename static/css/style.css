@@ -1108,5 +1108,38 @@ input:checked + .switch-slider:before {
     }
 }
 
+.offline-warning {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #f87171;
+    font-size: 11px;
+    line-height: 1.5;
+    transition: all 0.3s ease;
+    margin: 12px 0;
+    box-sizing: border-box;
+}
+
+.offline-warning.hide {
+    display: none !important;
+}
+
+.offline-warning .warning-icon {
+    font-size: 14px;
+    color: #ef4444;
+    flex-shrink: 0;
+    animation: pulse-warning-icon 2s infinite;
+}
+
+@keyframes pulse-warning-icon {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
 
 
