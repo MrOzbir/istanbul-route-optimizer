@@ -53,7 +53,7 @@ const translations = {
         analysisTitle: "Rota Analizi",
         distanceLabel: "Toplam Mesafe",
         durationLabel: "Tahmini Süre",
-        timeLabel: "Optimizasyon Süresi",
+        timeLabel: "İşlem Süresi",
         segmentsLabel: "Segment Sayısı",
         logsButton: "Optimizasyon Logları (2-opt)",
         mapOverlay: "Haritaya tıklayarak doğrudan koordinat alabilir, ardından \"Ekle\" ile uğranacak yerlere ekleyebilirsiniz.",
@@ -84,7 +84,10 @@ const translations = {
         trafficOverlayOn: "Trafiği Göster",
         trafficOverlayOff: "Trafiği Gizle",
         trafficRouteOn: "Trafikten Kaçın",
-        trafficRouteOff: "En Hızlı Yol (Trafiksiz)"
+        trafficRouteOff: "En Hızlı Yol (Trafiksiz)",
+        favSearchPlaceholder: "Favorilerde ara (isim veya koordinat)...",
+        promptNewName: "Konum için yeni bir isim girin:",
+        alertEmptyName: "İsim boş olamaz!"
     },
     en: {
         title: "IstRoute",
@@ -113,7 +116,7 @@ const translations = {
         analysisTitle: "Route Analysis",
         distanceLabel: "Total Distance",
         durationLabel: "Estimated Time",
-        timeLabel: "Optimization Time",
+        timeLabel: "Processing Time",
         segmentsLabel: "Segments Count",
         logsButton: "Optimization Logs (2-opt)",
         mapOverlay: "Click on the map to automatically copy coordinates, then click \"Add\" to include them.",
@@ -143,8 +146,10 @@ const translations = {
         trafficRouteLabel: "Traffic-Aware Routing",
         trafficOverlayOn: "Show Traffic",
         trafficOverlayOff: "Hide Traffic",
-        trafficRouteOn: "Avoid Traffic",
-        trafficRouteOff: "Fastest Path (No Traffic)"
+        trafficRouteOff: "Fastest Path (No Traffic)",
+        favSearchPlaceholder: "Search favorites (name/coords)...",
+        promptNewName: "Enter a new name for this location:",
+        alertEmptyName: "Name cannot be empty!"
     },
     ar: {
         title: "إستروت",
@@ -154,13 +159,15 @@ const translations = {
         placeholder: "مثال: 41.0369, 28.9784",
         addButton: "إضافة",
         popularLocations: "المواقع المفضلة",
-        noFavorites: "لم يتم إضافة أي مواقع مفضلة بعد.",
-        waypointsTitle: "النقاط المراد زيارتها",
+        noFavorites: "لم تُضَف أي مواقع مفضلة بعد.",
+        addFav: "إضافة إلى المفضلة",
+        removeFav: "إزالة من المفضلة",
+        waypointsTitle: "نقاط التوقف",
         clearAll: "مسح الكل",
-        emptyStateText: "لم يتم إضافة مواقع بعد.",
+        emptyStateText: "لم تُضَف أي مواقع بعد.",
         emptyStateSub: "انقر على الخريطة أو أدخل الإحداثيات أعلاه لإضافة أول موقع لك.",
         settingsTitle: "إعدادات التحسين",
-        heuristicLabel: "خوارزمية الاستدلال",
+        heuristicLabel: "الخوارزمية الاستدلالية",
         neuralText: "الاستدلال العصبي (ONNX)",
         classicText: "استدلال هافيرسين (A* الكلاسيكي)",
         routeModeLabel: "وضع المسار",
@@ -170,22 +177,22 @@ const translations = {
         optimizingBtn: "جاري التحسين...",
         analysisTitle: "تحليل المسار",
         distanceLabel: "المسافة الإجمالية",
-        durationLabel: "الوقت المقدر",
+        durationLabel: "المدة الزمنية المقدرة",
         timeLabel: "وقت التحسين",
         segmentsLabel: "عدد المقاطع",
         logsButton: "سجلات التحسين (2-opt)",
-        mapOverlay: "انقر على الخريطة لنسخ الإحداثيات تلقائيًا، ثم انقر فوق \"إضافة\" لإدراجها.",
-        errorMinWps: "يجب إدخال إحداثياتين على الأقل.",
-        alertCoords: "يرجى إدخال إحداثيات صالحة لإسطنبول! (العرض: 40-42، الطول: 28-30)",
+        mapOverlay: "انقر على الخريطة للحصول على الإحداثيات مباشرة، ثم انقر على \"إضافة\" لإدراجها في قائمة المسار.",
+        errorMinWps: "يجب إدخال إحداثيين على الأقل.",
+        alertCoords: "يرجى إدخال إحداثيات صالحة لإسطنبول! (خط العرض: 40-42، خط الطول: 28-30)",
         alertFormat: "يرجى إدخال الإحداثيات بصيغة \"خط العرض، خط الطول\"! (مثال: 41.0369، 28.9784)",
         alertServer: "تعذر الاتصال بخادم تحسين المسار. تأكد من أنه قيد التشغيل.",
         alertOptError: "خطأ في التحسين: ",
-        startLabel: "بداية",
-        endLabel: "نهاية",
-        waypointLabel: "توقف",
+        startLabel: "البداية",
+        endLabel: "النهاية",
+        waypointLabel: "نقطة توقف",
         segmentLabel: "مقطع",
-        foundLabel: "تم العثور",
-        notFoundLabel: "لم يتم العثور",
+        foundLabel: "تم العثور عليها",
+        notFoundLabel: "لم يتم العثور عليها",
         secLabel: "ثانية",
         minLabel: "دقيقة",
         kmLabel: "كم",
@@ -195,8 +202,16 @@ const translations = {
         startBadgeTitle: "تعيين كنقطة بداية",
         endBadgeTitle: "تعيين كنقطة نهاية",
         popupSelectedCoord: "الموقع المحدد",
-        popupSelectedDesc: "انقر فوق زر الإضافة لتضمين هذا في مسارك.",
-        offlineWarningText: "بما أنك غير متصل بالإنترنت حاليًا، فقد لا تحصل على نتائج دقيقة إذا قمت بالبحث باستخدام بيانات المرور المباشرة."
+        popupSelectedDesc: "انقر على زر الإضافة لإدراج هذا الموقع في مسارك.",
+        offlineWarningText: "بما أنك غير متصل بالإنترنت حاليًا، فقد لا تحصل على نتائج دقيقة إذا قمت بالبحث باستخدام بيانات المرور المباشرة.",
+        trafficOverlayLabel: "طبقة حركة المرور المباشرة",
+        trafficRouteLabel: "توجيه مراعٍ لحركة المرور",
+        trafficOverlayOn: "عرض حركة المرور",
+        trafficOverlayOff: "إخفاء حركة المرور",
+        trafficRouteOff: "أسرع طريق (بدون ازدحام)",
+        favSearchPlaceholder: "البحث في المفضلة (الاسم/الإحداثيات)...",
+        promptNewName: "أدخل اسمًا جديدًا لهذا الموقع:",
+        alertEmptyName: "لا يمكن أن يكون الاسم فارغًا!"
     },
     es: {
         title: "IstRoute",
@@ -1553,6 +1568,246 @@ const translations = {
         trafficOverlayOff: "Απόκρυψη Κίνησης",
         trafficRouteOn: "Αποφυγή Κίνησης",
         trafficRouteOff: "Γρηγορότερη Διαδρομή (Χωρίς κίνηση)"
+    },
+    he: {
+        title: "IstRoute",
+        subtitle: "מתכנן מסלול Neural A*",
+        addLocation: "הוסף מיקום",
+        locationDesc: "לחץ על המפה או הזן קו רוחב/קו אורך:",
+        placeholder: "למשל: 41.0369, 28.9784",
+        addButton: "הוסף",
+        popularLocations: "מיקומים מועדפים",
+        noFavorites: "טרם נוספו מיקומים מועדפים.",
+        addFav: "הוסף למועדפים",
+        removeFav: "הסר מהמועדפים",
+        waypointsTitle: "נקודות עצירה",
+        clearAll: "מחק הכל",
+        emptyStateText: "טרם נוספו מיקומים.",
+        emptyStateSub: "לחץ על המפה או הזן קואורדינטות למעלה כדי להוסיף את המיקום הראשון שלך.",
+        settingsTitle: "הגדרות אופטימיזציה",
+        heuristicLabel: "אלגוריתם היוריסטי",
+        neuralText: "היוריסטיקה עצבית (ONNX)",
+        classicText: "היוריסטיקת האברסין (A* קלאסי)",
+        routeModeLabel: "מצב מסלול",
+        loopText: "חזור לנקודת ההתחלה (מעגלי)",
+        openText: "מסלול פתוח (התחלה/סוף קבועים)",
+        optimizeBtn: "בצע אופטימיזציה למסלול",
+        optimizingBtn: "מבצע אופטימיזציה...",
+        analysisTitle: "ניתוח מסלול",
+        distanceLabel: "מרחק כולל",
+        durationLabel: "זמן מוערך",
+        timeLabel: "זמן עיבוד",
+        segmentsLabel: "מספר מקטעים",
+        logsButton: "יומני אופטימיזציה (2-opt)",
+        mapOverlay: "לחץ על המפה כדי להעתיק קואורדינטות באופן אוטומטי, ואז לחץ \"הוסף\" כדי לכלול אותן.",
+        errorMinWps: "יש להזין לפחות 2 קואורדינטות.",
+        alertCoords: "אנא הזן קואורדינטות תקינות באיסטנבול! (קו רוחב: 40-42, קו אורך: 28-30)",
+        alertFormat: "אנא הזן קואורדינטות בפורמט \"קו רוחב, קו אורך\"! (למשל: 41.0369, 28.9784)",
+        alertServer: "לא ניתן להתחבר לשרת אופטימיזציית המסלול. ודא שהוא פועל.",
+        alertOptError: "שגיאת אופטימיזציה: ",
+        startLabel: "התחלה",
+        endLabel: "סוף",
+        waypointLabel: "עצירה",
+        segmentLabel: "מקטע",
+        foundLabel: "נמצא",
+        notFoundLabel: "לא נמצא",
+        secLabel: "שניות",
+        minLabel: "דקות",
+        kmLabel: "ק\"מ",
+        msLabel: "מילישניות",
+        osmIdLabel: "מזהה OSM",
+        deleteLabel: "מחק נקודה",
+        startBadgeTitle: "קבע כנקודת התחלה",
+        endBadgeTitle: "קבע כנקודת סיום",
+        popupSelectedCoord: "מיקום שנבחר",
+        popupSelectedDesc: "לחץ על כפתور ההוספה כדי לכלول זאת במסלול שלך.",
+        offlineWarningText: "מכיוون שאתה כעת לא מקוון, ייתכן שלא תקבל תוצאות מדויקות אם תחפש עם נתוני תנועה חיים.",
+        trafficOverlayLabel: "שכבת תנועה חיה",
+        trafficRouteLabel: "ניתוב מודע לתנועה",
+        trafficOverlayOn: "הצג תנועה",
+        trafficOverlayOff: "הסתר תנועה",
+        trafficRouteOn: "הימנע מתנועה",
+        trafficRouteOff: "המסלול המהיר ביותר (ללא תנועה)"
+    },
+    ka: {
+        title: "IstRoute",
+        subtitle: "ნეირონული A* მარშრუტის დაგეგმვა",
+        addLocation: "მდებარეობის დამატება",
+        locationDesc: "დააწკაპუნეთ რუკაზე ან შეიყვანეთ განედი/გრძედი:",
+        placeholder: "მაგ: 41.0369, 28.9784",
+        addButton: "დამატება",
+        popularLocations: "რჩეული ადგილები",
+        noFavorites: "რჩეული ადგილები ჯერ არ არის დამატებული.",
+        addFav: "რჩეულებში დამატება",
+        removeFav: "რჩეულებიდან წაშლა",
+        waypointsTitle: "გასავლელი წერტილები",
+        clearAll: "ყველას წაშლა",
+        emptyStateText: "ადგილები ჯერ არ არის დამატებული.",
+        emptyStateSub: "დააწკაპუნეთ რუკაზე ან შეიყვანეთ კოორდინატები ზემოთ თქვენი პირველი მდებარეობის დასამატებლად.",
+        settingsTitle: "ოპტიმიზაციის პარამეტრები",
+        heuristicLabel: "ალგორითმის ჰევრისტიკა",
+        neuralText: "ნეირონული ჰევრისტიკა (ONNX)",
+        classicText: "ჰავერსინის ჰევრისტიკა (კლასიკური A*)",
+        routeModeLabel: "მარშრუტის რეჟიმი",
+        loopText: "დაბრუნება საწყის წერტილში (წრიული)",
+        openText: "ღია მარშრუტი (ფიქსირებული დასაწყისი/დასასრული)",
+        optimizeBtn: "მარშრუტის ოპტიმიზაცია",
+        optimizingBtn: "მიმდინარეობს ოპტიმიზაცია...",
+        analysisTitle: "მარშრուტის ანალიზი",
+        distanceLabel: "მთლიანი მანძილი",
+        durationLabel: "სავარაუდო დრო",
+        timeLabel: "ოპტიმიზაციის დრო",
+        segmentsLabel: "სეგმენტების რაოდენობა",
+        logsButton: "ოპტიმიზაციის ლოგები (2-opt)",
+        mapOverlay: "დააწკაპუნეთ რუკაზე კოორდინატების ავტომატურად დასაკოპირებლად, შემდეგ დააჭირეთ \"დამატებას\".",
+        errorMinWps: "უნდა შეიყვანოთ მინიმუმ 2 კოორდინატი.",
+        alertCoords: "გთხოვთ შეიყვანოთ სტამბოლის სწორი კოორდინატები! (განედი: 40-42, გრძედი: 28-30)",
+        alertFormat: "გთხოვთ შეიყვანოთ კოორდინატები ფორმატში \"განედი, გრძედი\"! (მაგ: 41.0369, 28.9784)",
+        alertServer: "ვერ მოხერხდა მარშრუტის ოპტიმიზაციის სერვერთან დაკავშირება.",
+        alertOptError: "ოპტიმიზაციის შეცდომა: ",
+        startLabel: "დასაწყისი",
+        endLabel: "დასასრული",
+        waypointLabel: "გაჩერება",
+        segmentLabel: "სეგმენტი",
+        foundLabel: "ნაპოვნია",
+        notFoundLabel: "ვեր მოიძებნა",
+        secLabel: "წამი",
+        minLabel: "წუთი",
+        kmLabel: "კმ",
+        msLabel: "მწ",
+        osmIdLabel: "OSM ID",
+        deleteLabel: "წერტილის წაშლა",
+        startBadgeTitle: "საწყის წერტილად დაყენება",
+        endBadgeTitle: "საბოლოო წერტილად დაყენება",
+        popupSelectedCoord: "არჩეული მდებარეობა",
+        popupSelectedDesc: "დააჭირეთ დამატების ღილაკს ეს თქვენს მარშრუტში ჩასართავად.",
+        offlineWarningText: "ვინაიდან ამჟამად ხაზგარეშე ხართ, შეიძლება ვერ მიიღოთ ზუსტი შედეგები ცოცხალი მოძრაობის მონაცემებით ძებნისას.",
+        trafficOverlayLabel: "ცოცხალი ტრაფიკის ფენა",
+        trafficRouteLabel: "ტრაფიკის გათვალისწინებით მარშრუტიზაცია",
+        trafficOverlayOn: "ტრაფიკის ჩვენება",
+        trafficOverlayOff: "ტრაფიკის დამალვა",
+        trafficRouteOn: "საცობების თავიდან არიდება",
+        trafficRouteOff: "უმოკლესი გზა (ტრაფიკის გარეშე)"
+    },
+    hy: {
+        title: "IstRoute",
+        subtitle: "Նեյրոնային A* Երթուղու Պլանավորող",
+        addLocation: "Ավելացնել Վայր",
+        locationDesc: "Կտտացրեք քարտեզի վրա կամ մուտքագրեք լայնությունը/երկայնությունը.",
+        placeholder: "օրինակ՝ 41.0369, 28.9784",
+        addButton: "Ավելացնել",
+        popularLocations: "Սիրված Վայրեր",
+        noFavorites: "Դեռևս սիրված վայրեր չեն ավելացվել:",
+        addFav: "Ավելացնել Սիրվածներում",
+        removeFav: "Հեռացնել Սիրվածներից",
+        waypointsTitle: "Այցելության Վայրեր",
+        clearAll: "Ջնջել Բոլորը",
+        emptyStateText: "Դեռևս վայրեր չեն ավելացվել:",
+        emptyStateSub: "Կտտացրեք քարտեզի վրա կամ մուտքագրեք կոորդინատները վերևում՝ ձեր առաջին վայրն ավելացնելու համար:",
+        settingsTitle: "Օպտիմալացման Կարգավորումներ",
+        heuristicLabel: "Ալգորիթմի Հեվրիստիկա",
+        neuralText: "Նեյրոնային Հեվրիստիկա (ONNX)",
+        classicText: "Հավերսինի Հեվրիստիկա (Դասական A*)",
+        routeModeLabel: "Երթուղու Ռեժիմ",
+        loopText: "Վերադառնալ Սկզբնակետ (Շրջանաձև)",
+        openText: "Բաց Երթուղի (Ֆիքսված Սկիզբ/Վերջ)",
+        optimizeBtn: "Օպտիմալացնել Երթուղին",
+        optimizingBtn: "Օպտիմալացվում է...",
+        analysisTitle: "Երթուղու Վերլուծություն",
+        distanceLabel: "Ընդհանուր Հեռավորություն",
+        durationLabel: "Մոտավոր Ժամանակ",
+        timeLabel: "Օպտիմալացման Ժամանակ",
+        segmentsLabel: "Հատվածների Քանակ",
+        logsButton: "Օպտիմալացման Լոգեր (2-opt)",
+        mapOverlay: "Կտտացրեք քարտեզի վրա կոորդინատներն ավտոմատ պատճենելու համար, ապա սեղմեք «Ավելացնել»:",
+        errorMinWps: "Պետք է մուտքագրվի առնվազն 2 կոորդինատ:",
+        alertCoords: "Խնդրում ենք մուտքագրել Ստամբուլի վավեր կոորդინատներ: (Լայնություն՝ 40-42, Երկայնություն՝ 28-30)",
+        alertFormat: "Մուտքագրեք կոորդინատները «Լայնություն, Երկայնություն» ձևաչափով: (օրինակ՝ 41.0369, 28.9784)",
+        alertServer: "Չհաջողվեց կապվել երթուղու օպտիմալացման սերվերի հետ:",
+        alertOptError: "Օպտիմալացման սխալ. ",
+        startLabel: "Սկիզբ",
+        endLabel: "Վերջ",
+        waypointLabel: "Կանգառ",
+        segmentLabel: "Հատված",
+        foundLabel: "Գտնվել է",
+        notFoundLabel: "Չի գտնվել",
+        secLabel: "վայրկյան",
+        minLabel: "րոպե",
+        kmLabel: "կմ",
+        msLabel: "մվ",
+        osmIdLabel: "OSM ID",
+        deleteLabel: "Ջնջել Կետը",
+        startBadgeTitle: "Սահմանել որպես Սկզբնակետ",
+        endBadgeTitle: "Սահմանել որպես Վերջնակետ",
+        popupSelectedCoord: "Ընտրված Վայր",
+        popupSelectedDesc: "Սեղմեք «Ավելացնել» կոճակը երթուղու մեջ ներառելու համար:",
+        offlineWarningText: "Քանի որ ներկայումս անցանց եք, իրական ժամանակի երթևեկության տվյալներով որոնելիս կարող եք ճշգրիտ արդյունքներ չստանալ:",
+        trafficOverlayLabel: "Երթևեկության Շերտ",
+        trafficRouteLabel: "Երթևեկության Հաշվառմամբ Ուղղորդում",
+        trafficOverlayOn: "Ցուցադրել Երթևեկությունը",
+        trafficOverlayOff: "Թաքցնել Երթևեկությունը",
+        trafficRouteOn: "Խուսափել Խցանումներից",
+        trafficRouteOff: "Ամենաարագ Ուղին (Առանց խցանումների)"
+    },
+    eo: {
+        title: "IstRoute",
+        subtitle: "Neŭrala A* Itinerplanilo",
+        addLocation: "Aldoni Lokon",
+        locationDesc: "Alklaku lokon sur la mapo aŭ enigu latitudon/longitudon:",
+        placeholder: "ekz. 41.0369, 28.9784",
+        addButton: "Aldoni",
+        popularLocations: "Preferataj Lokoj",
+        noFavorites: "Ankoraŭ neniuj preferataj lokoj aldonitaj.",
+        addFav: "Aldoni al Favoratoj",
+        removeFav: "Forigi el Favoratoj",
+        waypointsTitle: "Vojpunktoj por Viziti",
+        clearAll: "Viŝi Ĉion",
+        emptyStateText: "Ankoraŭ neniuj lokoj aldonitaj.",
+        emptyStateSub: "Alklaku la mapon aŭ enigu koordinatojn supre por aldoni vian unuan lokon.",
+        settingsTitle: "Agordoj de Optimumigo",
+        heuristicLabel: "Algoritma Heŭristiko",
+        neuralText: "Neŭrala Heŭristiko (ONNX)",
+        classicText: "Heŭristiko de Haversine (Klasika A*)",
+        routeModeLabel: "Itinera Reĝimo",
+        loopText: "Reiri al la Komenco (Cikla)",
+        openText: "Malfermita Itinero (Fiksa Komenco/Fino)",
+        optimizeBtn: "Optimumigi Itineron",
+        optimizingBtn: "Optimumigante...",
+        analysisTitle: "Itinera Analizo",
+        distanceLabel: "Totala Distanco",
+        durationLabel: "Laŭtaksa Tempo",
+        timeLabel: "Optimumiga Tempo",
+        segmentsLabel: "Nombro de Segmentoj",
+        logsButton: "Optimumigaj Protokoloj (2-opt)",
+        mapOverlay: "Alklaku la mapon por kopii koordinatojn aŭtomate, tiam alklaku \"Aldoni\" por inkluzivi ilin.",
+        errorMinWps: "Almenaŭ 2 koordinatoj devas esti enigitaj.",
+        alertCoords: "Bonvolu enigi validajn koordinatojn de Istanbulo! (Latitudo: 40-42, Longitudo: 28-30)",
+        alertFormat: "Bonvolu enigi koordinatojn laŭ la formato \"Latitudo, Longitudo\"! (ekz. 41.0369, 28.9784)",
+        alertServer: "Ne eblis konekti al la itinera optimumiga servilo. Certigu, ke ĝi funkcias.",
+        alertOptError: "Eraro de optimumigo: ",
+        startLabel: "Komenco",
+        endLabel: "Fino",
+        waypointLabel: "Halthaveno",
+        segmentLabel: "Segmento",
+        foundLabel: "Trovita",
+        notFoundLabel: "Netrovita",
+        secLabel: "sekundoj",
+        minLabel: "minutoj",
+        kmLabel: "km",
+        msLabel: "ms",
+        osmIdLabel: "OSM ID",
+        deleteLabel: "Forigi Punkton",
+        startBadgeTitle: "Agordi kiel Komencan Punkton",
+        endBadgeTitle: "Agordi kiel Finan Punkton",
+        popupSelectedCoord: "Elektita Loko",
+        popupSelectedDesc: "Alklaku la butonon Aldoni por inkluzivi ĉi tion en via itinero.",
+        offlineWarningText: "Ĉar vi nuntempe estas eksterrete, vi eble ne ricevos precizajn rezultojn se vi serĉas per vivaj trafikdatenoj.",
+        trafficOverlayLabel: "Viva Trafika Tavolo",
+        trafficRouteLabel: "Trafik-Atenta Enkursigo",
+        trafficOverlayOn: "Montri Trafikon",
+        trafficOverlayOff: "Kaŝi Trafikon",
+        trafficRouteOn: "Eviti Trafikon",
+        trafficRouteOff: "Plej Rapida Vojo (Sen trafiko)"
     }
 };
 
@@ -1562,7 +1817,32 @@ document.addEventListener('DOMContentLoaded', () => {
     initLanguage();
     initMap();
     initEventListeners();
-    renderFavorites();
+
+    // Sunucudan landmark listesini çek ve favorites'e ekle (yoksa)
+    fetch('/api/landmarks')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && Array.isArray(data.landmarks)) {
+                let changed = false;
+                data.landmarks.forEach(lm => {
+                    const alreadyExists = state.favorites.some(
+                        f => Math.abs(f.lat - lm.lat) < 1e-5 && Math.abs(f.lng - lm.lng) < 1e-5
+                    );
+                    if (!alreadyExists) {
+                        state.favorites.push({ lat: lm.lat, lng: lm.lng, name: lm.name });
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    localStorage.setItem('favorites', JSON.stringify(state.favorites));
+                }
+            }
+            renderFavorites();
+        })
+        .catch(() => {
+            // Sunucuya ulaşılamazsa sadece mevcut favoriları göster
+            renderFavorites();
+        });
 });
 
 // --- Tema Yönetimi ---
@@ -1605,6 +1885,14 @@ function toggleTheme() {
     
     updateThemeToggleIcon(newTheme);
     updateMapTiles();
+    
+    // Rota çizili ise arka plan sınır çizgilerinin rengini yeni temaya göre güncelle
+    const newOutlineColor = newTheme === 'light' ? '#ffffff' : '#0a0a0a';
+    state.polylines.forEach(pl => {
+        if (pl.options && pl.options.interactive === false) {
+            pl.setStyle({ color: newOutlineColor });
+        }
+    });
 }
 
 // --- Dil Yönetimi ---
@@ -1651,6 +1939,10 @@ function updateLanguage() {
     const coordInput = document.getElementById('coord-input');
     if (coordInput) {
         coordInput.placeholder = translations[lang].placeholder;
+    }
+    const favSearchInput = document.getElementById('fav-search-input');
+    if (favSearchInput) {
+        favSearchInput.placeholder = translations[lang].favSearchPlaceholder || 'Favorilerde ara...';
     }
     
     // Durum etiketlerini güncelle
@@ -1808,7 +2100,7 @@ function toggleFavoriteClick(lat, lng) {
     updateWaypointList();
 }
 
-function renderFavorites() {
+function renderFavorites(filterQuery = '') {
     const shortcutsContainer = document.getElementById('favorites-shortcuts') || document.getElementById('landmarks-shortcuts');
     if (!shortcutsContainer) return;
     
@@ -1824,7 +2116,27 @@ function renderFavorites() {
         return;
     }
     
-    state.favorites.forEach((fav, index) => {
+    const query = filterQuery.toLowerCase().trim();
+    const filtered = state.favorites.filter(fav => {
+        if (!query) return true;
+        const nameMatch = fav.name && fav.name.toLowerCase().includes(query);
+        const latStr = fav.lat ? fav.lat.toString() : '';
+        const lngStr = fav.lng ? fav.lng.toString() : '';
+        const coordMatch = latStr.includes(query) || lngStr.includes(query);
+        return nameMatch || coordMatch;
+    });
+
+    if (filtered.length === 0) {
+        const noResultsSpan = document.createElement('span');
+        noResultsSpan.className = 'loading-inline';
+        noResultsSpan.style.fontStyle = 'italic';
+        noResultsSpan.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> <span>${state.lang === 'tr' ? 'Sonuç bulunamadı.' : (state.lang === 'ar' ? 'لم يتم العثور على نتائج.' : 'No results found.')}</span>`;
+        shortcutsContainer.appendChild(noResultsSpan);
+        return;
+    }
+    
+    filtered.forEach((fav) => {
+        const actualIndex = state.favorites.findIndex(f => f.lat === fav.lat && f.lng === fav.lng);
         const badge = document.createElement('span');
         badge.className = 'landmark-badge';
         badge.style.display = 'inline-flex';
@@ -1835,7 +2147,10 @@ function renderFavorites() {
         badge.innerHTML = `
             <i class="fa-solid fa-location-dot"></i> 
             <span>${fav.name}</span>
-            <button class="fav-delete-btn" style="background:none; border:none; padding:0; margin-left:4px; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.2s; font-size:10px;" title="Favorilerden Çıkar" onclick="event.stopPropagation(); removeFavorite(${index})">
+            <button class="fav-edit-btn" style="background:none; border:none; padding:0; margin-left:4px; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.2s; font-size:10px;" title="${state.lang === 'tr' ? 'Düzenle' : (state.lang === 'ar' ? 'تعديل' : 'Edit')}" onclick="event.stopPropagation(); editFavoriteName(${actualIndex})">
+                <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="fav-delete-btn" style="background:none; border:none; padding:0; margin-left:4px; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.2s; font-size:10px;" title="${state.lang === 'tr' ? 'Favorilerden Çıkar' : (state.lang === 'ar' ? 'إزالة من المفضلة' : 'Remove Favorite')}" onclick="event.stopPropagation(); removeFavorite(${actualIndex})">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         `;
@@ -1848,10 +2163,54 @@ function renderFavorites() {
     });
 }
 
+function filterFavorites() {
+    const searchInput = document.getElementById('fav-search-input');
+    const query = searchInput ? searchInput.value : '';
+    renderFavorites(query);
+}
+
+function editFavoriteName(index) {
+    const fav = state.favorites[index];
+    if (!fav) return;
+    
+    const newName = prompt(translations[state.lang].promptNewName || "Konum için yeni bir isim girin:", fav.name);
+    if (newName === null) return;
+    
+    const trimmed = newName.trim();
+    if (trimmed === "") {
+        alert(translations[state.lang].alertEmptyName || "İsim boş olamaz!");
+        return;
+    }
+    
+    state.favorites[index].name = trimmed;
+    localStorage.setItem('favorites', JSON.stringify(state.favorites));
+    
+    state.waypoints.forEach(wp => {
+        if (Math.abs(wp.lat - fav.lat) < 1e-6 && Math.abs(wp.lng - fav.lng) < 1e-6) {
+            wp.name = trimmed;
+        }
+    });
+    updateWaypointList();
+    
+    const searchInput = document.getElementById('fav-search-input');
+    const currentQuery = searchInput ? searchInput.value : '';
+    renderFavorites(currentQuery);
+    
+    if (state.clickMarker) {
+        const lat = state.clickMarker.getLatLng().lat;
+        const lng = state.clickMarker.getLatLng().lng;
+        updateClickMarkerPopup(lat, lng);
+    }
+}
+
 function removeFavorite(index) {
     state.favorites.splice(index, 1);
     localStorage.setItem('favorites', JSON.stringify(state.favorites));
-    renderFavorites();
+    
+    const searchInput = document.getElementById('fav-search-input');
+    const currentQuery = searchInput ? searchInput.value : '';
+    renderFavorites(currentQuery);
+    
     updateWaypointList();
     if (state.clickMarker) {
         const lat = state.clickMarker.getLatLng().lat;
@@ -1899,6 +2258,7 @@ async function optimizeRoute() {
     
     const useHaversine = document.getElementById('heuristic-toggle').checked;
     
+    const startTime = performance.now();
     try {
         const response = await fetch('/api/route', {
             method: 'POST',
@@ -1914,11 +2274,13 @@ async function optimizeRoute() {
         });
         
         const data = await response.json();
+        const endTime = performance.now();
+        const clientElapsedMs = endTime - startTime;
         
         if (data.success) {
             document.getElementById('stat-distance').textContent = `${data.total_length_km.toFixed(2)} ${translations[lang].kmLabel}`;
             document.getElementById('stat-duration').textContent = `${data.total_time_min.toFixed(0)} ${translations[lang].minLabel}`;
-            document.getElementById('stat-time').textContent = `${data.elapsed_ms.toFixed(0)} ${translations[lang].msLabel}`;
+            document.getElementById('stat-time').textContent = `${clientElapsedMs.toFixed(0)} ${translations[lang].msLabel}`;
             document.getElementById('stat-segments').textContent = data.segments.length;
             
             logsList.innerHTML = '';
@@ -1956,6 +2318,77 @@ function drawRoute(segments, orderedWaypoints) {
     const M = segments.length;
     const lang = state.lang;
     
+    // 1. Her segment için yönlü kenarları (directed edges) çıkar
+    const segmentEdges = segments.map((seg) => {
+        const edges = new Set();
+        if (!seg.found || !seg.path_coords || seg.path_coords.length === 0) return edges;
+        const latlngs = seg.path_coords;
+        for (let k = 0; k < latlngs.length - 1; k++) {
+            const p1 = latlngs[k];
+            const p2 = latlngs[k+1];
+            const k1 = `${p1[0].toFixed(6)},${p1[1].toFixed(6)}`;
+            const k2 = `${p2[0].toFixed(6)},${p2[1].toFixed(6)}`;
+            edges.add(`${k1}->${k2}`);
+        }
+        return edges;
+    });
+
+    // Kenarı tersine çeviren yardımcı fonksiyon
+    function reverseEdge(edgeStr) {
+        const parts = edgeStr.split('->');
+        return `${parts[1]}->${parts[0]}`;
+    }
+
+    // 2. Çakışan segmentlere göre ofset değerlerini hesapla
+    const offsets = new Array(segments.length).fill(0);
+    const allowedOffsets = [0, 4, -4, 8, -8, 12, -12, 16, -16, 20, -20, 24, -24];
+
+    segments.forEach((seg, idx) => {
+        if (!seg.found || !seg.path_coords || seg.path_coords.length === 0) return;
+        
+        const edgesI = segmentEdges[idx];
+        const excluded = new Set();
+        
+        for (let j = 0; j < idx; j++) {
+            const edgesJ = segmentEdges[j];
+            if (edgesJ.size === 0) continue;
+            
+            let hasSame = false;
+            let hasOpposite = false;
+            
+            for (const edge of edgesI) {
+                if (edgesJ.has(edge)) {
+                    hasSame = true;
+                }
+                if (edgesJ.has(reverseEdge(edge))) {
+                    hasOpposite = true;
+                }
+                if (hasSame && hasOpposite) break;
+            }
+            
+            if (hasSame) {
+                // Aynı yönde çakışma varsa aynı ofseti kullanmasınlar
+                excluded.add(offsets[j]);
+            }
+            if (hasOpposite) {
+                // Zıt yönde çakışma varsa, zıt yön kaydırması otomatik olarak
+                // ekranın diğer tarafına kaydıracağı için eksi ofset çakışır
+                excluded.add(-offsets[j]);
+            }
+        }
+        
+        // Dışlanmayan ilk uygun ofseti seç
+        let chosenOffset = 0;
+        for (const opt of allowedOffsets) {
+            if (!excluded.has(opt)) {
+                chosenOffset = opt;
+                break;
+            }
+        }
+        offsets[idx] = chosenOffset;
+    });
+
+    // 3. Segmentleri çiz
     segments.forEach((seg, idx) => {
         if (!seg.found || seg.path_coords.length === 0) return;
         
@@ -1963,12 +2396,10 @@ function drawRoute(segments, orderedWaypoints) {
         const hue = M > 1 ? 120 - (idx / (M - 1)) * 120 : 120;
         const color = `hsl(${hue}, 85%, 45%)`;
         
-        // Üst üste binen yollarda önceki yolların (küçük idx) altta kalıp kaybolmaması için
-        // daha kalın çizilmesini sağlıyoruz (konsept: iç içe renk halkaları/sınır çizgileri).
-        const minWeight = 4;
-        const maxWeight = 14;
-        const step = 1.5;
-        const weight = Math.min(maxWeight, minWeight + (M - 1 - idx) * step);
+        const offset = offsets[idx];
+        const weight = 5;
+        const bgWeight = 9;
+        const outlineColor = state.theme === 'light' ? '#ffffff' : '#0a0a0a';
         
         const latlngs = seg.path_coords.map(coord => [coord[0], coord[1]]);
         bounds.push(...latlngs);
@@ -1983,15 +2414,59 @@ function drawRoute(segments, orderedWaypoints) {
             </div>
         `;
         
+        // Arkadaki kontrast sınır çizgisi (Siyah/Beyaz border)
+        const bgPolyline = L.polyline(latlngs, {
+            color: outlineColor,
+            weight: bgWeight,
+            opacity: 0.9,
+            lineJoin: 'round',
+            interactive: false,
+            offset: offset
+        }).addTo(state.map);
+        
+        // Öndeki renkli rota çizgisi
         const polyline = L.polyline(latlngs, {
             color: color,
             weight: weight,
             opacity: 0.85,
-            lineJoin: 'round'
+            lineJoin: 'round',
+            offset: offset
         })
         .bindPopup(popupHtml)
         .addTo(state.map);
         
+        // Arka plan çizgisini ön plan çizgisine bağlayalım (hover efektleri için)
+        polyline.bgPolyline = bgPolyline;
+        
+        // Mouse ile üzerine gelince çizgiyi kalınlaştır ve en üste getir (hover efekti)
+        polyline.on('mouseover', function () {
+            this.setStyle({
+                weight: weight + 4,
+                opacity: 1.0
+            });
+            if (this.bgPolyline) {
+                this.bgPolyline.setStyle({
+                    weight: bgWeight + 4
+                });
+                this.bgPolyline.bringToFront();
+            }
+            this.bringToFront();
+        });
+        
+        // Mouse ayrılınca orijinal stilini geri yükle
+        polyline.on('mouseout', function () {
+            this.setStyle({
+                weight: weight,
+                opacity: 0.85
+            });
+            if (this.bgPolyline) {
+                this.bgPolyline.setStyle({
+                    weight: bgWeight
+                });
+            }
+        });
+        
+        state.polylines.push(bgPolyline);
         state.polylines.push(polyline);
     });
     

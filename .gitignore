@@ -1,0 +1,53 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Test & linting cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OSMnx tile cache (otomatik yeniden üretilir)
+cache/
+
+# Build çıktıları
+output/
+
+# Log dosyaları
+logs/*.log
+
+# Büyük veri dosyaları (LFS ile izlenir)
+data/raw/
+data/processed/*.graphml
+data/processed/*.pkl
+
+# Model checkpoint'leri (LFS ile izlenir)
+models/checkpoints/*.pt
+models/onnx/*.onnx
+
+# Jupyter notebook checkpoint'leri
+.ipynb_checkpoints/
+
+# Ortam değişkenleri
+.env
+.env.*
