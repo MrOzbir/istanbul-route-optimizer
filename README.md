@@ -1,68 +1,68 @@
-# İstanbul Neural-Guided A* Rota Planlayıcı
+# Istanbul Neural-Guided A* Route Planner
 
-İstanbul'un yol ağı üzerinde **sinir ağı destekli, hiyerarşik, çift yönlü A\*** algoritması kullanan çok duraklı rota optimizasyon sistemi. Kullanıcı harita üzerinde istediği noktaları işaretler; sistem bu noktaları en kısa sürede birbirine bağlayan optimal rotayı gerçek zamanlı trafik verisiyle birlikte hesaplar ve interaktif bir haritada görselleştirir.
+A multi-stop route optimization system for Istanbul's road network using a **neural network-guided, hierarchical, bidirectional A\*** algorithm. Users pin any waypoints on the map; the system finds the optimal route connecting them in the shortest travel time, incorporating real-time traffic data, and visualizes it on an interactive map.
 
 ---
 
-## İçindekiler
+## Table of Contents
 
-- [Proje Amacı](#proje-amacı)
-- [Sistem Mimarisi](#sistem-mimarisi)
-- [Modüller ve Çalışma Mantığı](#modüller-ve-çalışma-mantığı)
-  - [1. Harita Verisi: MapLoader](#1-harita-verisi-maploader)
-  - [2. Graf İşleme: GraphProcessor](#2-graf-işleme-graphprocessor)
-  - [3. Rota Motoru: AStarEngine](#3-rota-motoru-astarengine)
-  - [4. Sinir Ağı Eğitimi: training/](#4-sinir-ağı-eğitimi-training)
+- [Project Goal](#project-goal)
+- [System Architecture](#system-architecture)
+- [Modules & How They Work](#modules--how-they-work)
+  - [1. Map Data: MapLoader](#1-map-data-maploader)
+  - [2. Graph Processing: GraphProcessor](#2-graph-processing-graphprocessor)
+  - [3. Route Engine: AStarEngine](#3-route-engine-astarengine)
+  - [4. Neural Network Training: training/](#4-neural-network-training-training)
   - [5. Neural Heuristic: NeuralHeuristic](#5-neural-heuristic-neuralheuristic)
-  - [6. Çok Duraklı Rota: RingPlanner](#6-çok-duraklı-rota-ringplanner)
-  - [7. Trafik Yönetimi: TrafficManager](#7-trafik-yönetimi-trafficmanager)
-  - [8. Web Arayüzü: app.py + Flask](#8-web-arayüzü-apppy--flask)
-  - [9. Görselleştirme: MapRenderer](#9-görselleştirme-maprenderer)
-- [Veri Akışı (Uçtan Uca)](#veri-akışı-uçtan-uca)
-- [Algoritma Detayları](#algoritma-detayları)
+  - [6. Multi-Stop Routing: RingPlanner](#6-multi-stop-routing-ringplanner)
+  - [7. Traffic Management: TrafficManager](#7-traffic-management-trafficmanager)
+  - [8. Web Interface: app.py + Flask](#8-web-interface-apppy--flask)
+  - [9. Visualization: MapRenderer](#9-visualization-maprenderer)
+- [End-to-End Data Flow](#end-to-end-data-flow)
+- [Algorithm Details](#algorithm-details)
   - [Bidirectional A*](#bidirectional-a)
-  - [Hiyerarşik Graf Katmanlama](#hiyerarşik-graf-katmanlama)
+  - [Hierarchical Graph Layering](#hierarchical-graph-layering)
   - [Neural Heuristic](#neural-heuristic)
-  - [TSP Çözümü: Nearest Neighbor + 2-opt](#tsp-çözümü-nearest-neighbor--2-opt)
-  - [Trafik Simülasyonu](#trafik-simülasyonu)
-- [Özellik Mühendisliği](#özellik-mühendisliği)
-- [Model Mimarisi: HeuristicNet](#model-mimarisi-heuristicnet)
-- [Önbellekleme Stratejisi](#önbellekleme-stratejisi)
-- [Kurulum ve Çalıştırma](#kurulum-ve-çalıştırma)
-- [Komut Satırı Kullanımı](#komut-satırı-kullanımı)
-- [API Uç Noktaları](#api-uç-noktaları)
-- [Proje Dizin Yapısı](#proje-dizin-yapısı)
-- [Landmark Koordinatları](#landmark-koordinatları)
+  - [TSP Solution: Nearest Neighbor + 2-opt](#tsp-solution-nearest-neighbor--2-opt)
+  - [Traffic Simulation](#traffic-simulation)
+- [Feature Engineering](#feature-engineering)
+- [Model Architecture: HeuristicNet](#model-architecture-heuristicnet)
+- [Caching Strategy](#caching-strategy)
+- [Setup & Running](#setup--running)
+- [Command-Line Usage](#command-line-usage)
+- [API Endpoints](#api-endpoints)
+- [Project Directory Structure](#project-directory-structure)
+- [Landmark Coordinates](#landmark-coordinates)
 
 ---
 
-## Proje Amacı
+## Project Goal
 
-Klasik navigasyon yazılımlarının İstanbul gibi büyük, iki kıtalı ve karmaşık topolojili şehirlerde yaşadığı ölçeklenebilirlik sorununu çözmek. Bu proje:
+To solve the scalability problem that classical navigation software faces in large, transcontinental, topologically complex cities like Istanbul. This project:
 
-- **Klasik A\***'ı üç ayrı teknikle iyileştirerek (çift yönlülük + hiyerarşi + neural heuristic) 10–50x hız kazanımı sağlar.
-- N adet kullanıcı seçimli durak arasındaki **en optimum geçiş sırasını** TSP tabanlı algoritmalarla bulur.
-- Gerçek zamanlı veya simüle edilmiş **trafik yoğunluğunu** kenar maliyetlerine yansıtarak trafik farkında rotalar üretir.
-- Tüm bu işlemleri kullanıcı dostu bir **web arayüzünden** tek tıkla sunar.
+- Improves classical A\* with three distinct techniques (bidirectionality + hierarchy + neural heuristic) for a **10–50× speed-up**.
+- Finds the **optimal visit order** among N user-selected waypoints using TSP-based algorithms.
+- Produces traffic-aware routes by reflecting real-time or simulated **traffic congestion** into edge costs.
+- Exposes all of this through a user-friendly **web interface** with a single click.
 
 ---
 
-## Sistem Mimarisi
+## System Architecture
 
 ```
 OpenStreetMap (Overpass API)
          │
          ▼
-   core/map_loader.py          ← Ham harita verisi çekme
+   core/map_loader.py          ← Raw map data fetching
          │
          ▼
- core/graph_processor.py       ← Hiyerarşik katmanlama + Haversine önbelleği
+ core/graph_processor.py       ← Hierarchical layering + Haversine cache
          │
     ┌────┴────┐
     │         │
     ▼         ▼
-Express    Arterial             ← İki ayrı arama katmanı
-  Graf       Graf
+ Express    Arterial            ← Two separate search layers
+  Graph      Graph
     │         │
     └────┬────┘
          │
@@ -70,388 +70,388 @@ Express    Arterial             ← İki ayrı arama katmanı
   core/astar_engine.py         ← Bidirectional Hierarchical A*
     ▲         ▲
     │         │
-  Haversine  NeuralHeuristic   ← Değiştirilebilir sezgisel fonksiyon
-  (fallback) (ONNX, inference)
+  Haversine  NeuralHeuristic   ← Pluggable heuristic function
+  (fallback) (ONNX inference)
          │
          ▼
   core/ring_planner.py         ← TSP: Nearest Neighbor + 2-opt
          │
          ▼
-  core/traffic_manager.py      ← Kenar maliyeti çarpanları (trafik)
+  core/traffic_manager.py      ← Edge cost multipliers (traffic)
          │
          ▼
-   app.py (Flask)              ← REST API sunucusu
+   app.py (Flask)              ← REST API server
          │
          ▼
-  templates/index.html         ← Leaflet.js interaktif harita arayüzü
+  templates/index.html         ← Leaflet.js interactive map UI
 ```
 
 ---
 
-## Modüller ve Çalışma Mantığı
+## Modules & How They Work
 
-### 1. Harita Verisi: MapLoader
+### 1. Map Data: MapLoader
 
-**Dosya:** `core/map_loader.py`
+**File:** `core/map_loader.py`
 
-**Amaç:** OpenStreetMap'ten İstanbul'un ana yol ağını çekerek projeye hazır hale getirir.
+**Purpose:** Fetches Istanbul's main road network from OpenStreetMap and prepares it for the pipeline.
 
-**Çalışma Adımları:**
+**Steps:**
 
-1. **Graf Çekme:** OSMnx kütüphanesi aracılığıyla Overpass API'ye sorgu atar. Yalnızca üst düzey yollar alınır: `motorway`, `motorway_link`, `trunk`, `trunk_link`, `primary`, `primary_link`, `secondary`, `secondary_link`. Düşük hiyerarşili yollar (residential, unclassified, tertiary) bilinçli olarak hariç tutulur — bu hem veri boyutunu küçültür hem de A\* arama uzayını daraltır.
+1. **Graph Fetching:** Queries the Overpass API via the OSMnx library. Only high-hierarchy roads are retrieved: `motorway`, `motorway_link`, `trunk`, `trunk_link`, `primary`, `primary_link`, `secondary`, `secondary_link`. Lower-hierarchy roads (residential, unclassified, tertiary) are intentionally excluded — this reduces data size and narrows the A\* search space.
 
-2. **Graf Zenginleştirme:** Çekilen ham grafa ek özellikler eklenir:
-   - `speed_kph`: OSMnx'in `add_edge_speeds()` fonksiyonu eksik hız limitlerini yol tipine göre tahmin eder.
-   - `travel_time`: `length / speed_ms` formülüyle saniye cinsinden kenar geçiş süresi hesaplanır. A\* bu değeri maliyet metriği olarak kullanır.
-   - `highway_rank`: Yol öncelik skoru (motorway=5 … secondary=1). Sinir ağı özellik mühendisliğinde ve katman seçiminde kullanılır.
+2. **Graph Enrichment:** Additional attributes are added to the raw graph:
+   - `speed_kph`: OSMnx's `add_edge_speeds()` estimates missing speed limits from road type.
+   - `travel_time`: Edge traversal time in seconds computed as `length / speed_ms`. A\* uses this as the cost metric.
+   - `highway_rank`: Road priority score (motorway=5 … secondary=1). Used in neural network feature engineering and layer selection.
 
-3. **Kaydetme:** Graf `.graphml` formatında `data/raw/istanbul_main_arteries.graphml` olarak diske yazılır. Sonraki çalıştırmalarda API'ye tekrar sorgu atılmaz; `load_from_disk()` ile doğrudan yüklenir.
+3. **Saving:** The graph is written to disk as `.graphml` at `data/raw/istanbul_main_arteries.graphml`. On subsequent runs, the API is never re-queried; the graph is loaded directly with `load_from_disk()`.
 
-**Neden `.graphml`?** NetworkX'in tüm düğüm/kenar özelliklerini tam olarak koruyan XML tabanlı format. QGIS, Gephi gibi araçlarla da açılabilir.
+**Why `.graphml`?** An XML-based format that fully preserves all node/edge attributes in NetworkX. Also compatible with tools like QGIS and Gephi.
 
 ---
 
-### 2. Graf İşleme: GraphProcessor
+### 2. Graph Processing: GraphProcessor
 
-**Dosya:** `core/graph_processor.py`
+**File:** `core/graph_processor.py`
 
-**Amaç:** Ham grafı A\* için optimize eder: hiyerarşik katmanlara böler ve Haversine önbelleği oluşturur.
+**Purpose:** Optimizes the raw graph for A\*: splits it into hierarchical layers and builds a Haversine cache.
 
-**SCC Temizliği:** 100'den fazla düğümlü graflarda önce en büyük Strongly Connected Component (SCC) belirlenir. Çıkmaz sokaklar, tek yönlü ölü uçlar ve küçük kopuk parçalar kaldırılır. Bu işlem grafiği tutarlı ve her noktadan her noktaya erişilebilir hale getirir.
+**SCC Cleaning:** For graphs with more than 100 nodes, the largest Strongly Connected Component (SCC) is identified first. Dead-ends, one-way dead ends, and small disconnected fragments are removed. This makes the graph consistent and ensures every node is reachable from every other node.
 
-**Hiyerarşik Katmanlama (`build_hierarchy()`):**
+**Hierarchical Layering (`build_hierarchy()`):**
 
-Graf iki ayrı katmana bölünür:
+The graph is split into two separate layers:
 
-| Katman | Yol Tipleri | Kullanım |
+| Layer | Road Types | Usage |
 |---|---|---|
-| **Express** | motorway, motorway_link, trunk, trunk_link | ≥5 km arası aramalar |
-| **Arterial** | primary, primary_link, secondary, secondary_link | <5 km arası aramalar |
-| **Full** | Express + Arterial birleşimi | Fallback ve görselleştirme |
+| **Express** | motorway, motorway_link, trunk, trunk_link | Searches ≥ 5 km apart |
+| **Arterial** | primary, primary_link, secondary, secondary_link | Searches < 5 km apart |
+| **Full** | Express + Arterial combined | Fallback and visualization |
 
-Her katman için aynı zamanda **ters graf** (reversed) da üretilir. Bidirectional A\* hedeften geriye arama yaparken bu ters grafı kullanır; çalışma anında ters çevirme maliyeti sıfırdır.
+A **reversed graph** is also produced for each layer. Bidirectional A\* uses this reversed graph when searching backward from the target; the reversal cost at runtime is zero.
 
-İstanbul'un iki kıtalı yapısı nedeniyle, katman oluştururken 100 düğümden büyük tüm bağlantılı bileşenler korunur (sadece en büyüğü değil). Aksi takdirde Avrupa ve Asya yakasının birbirinden kopması riski ortaya çıkar.
+Because Istanbul is transcontinental, all connected components with more than 100 nodes are preserved when building layers (not just the largest). Without this, the European and Asian sides of the city could become disconnected.
 
-**Haversine Önbelleği (`build_heuristic_cache()`):**
+**Haversine Cache (`build_heuristic_cache()`):**
 
-`HeuristicCache` nesnesi iki şey içerir:
-- `node_coords`: Tüm düğümlerin `{osmid: (lat, lon)}` sözlüğü — O(1) koordinat erişimi.
-- `distance_cache`: Daha önce hesaplanmış Haversine mesafelerinin `{(u,v): metre}` sözlüğü — tekrar hesaplama olmaz.
+The `HeuristicCache` object holds two things:
+- `node_coords`: A `{osmid: (lat, lon)}` dictionary for all nodes — O(1) coordinate lookup.
+- `distance_cache`: A `{(u, v): metres}` dictionary of previously computed Haversine distances — no recomputation.
 
-`get_heuristic(cache, u, v)` fonksiyonu A\*'ın iç döngüsünde her adımda çağrılır. Önbellekte varsa O(1), yoksa Haversine hesaplayarak önbelleğe yazar. Önbellek `pickle` formatında diske kaydedilir; sunucu yeniden başladığında sıfırdan hesaplama yapılmaz.
+`get_heuristic(cache, u, v)` is called on every step of A\*'s inner loop. If cached, it returns in O(1); otherwise it computes Haversine and stores the result. The cache is persisted to disk in `pickle` format so the server never recomputes from scratch on restart.
 
 ---
 
-### 3. Rota Motoru: AStarEngine
+### 3. Route Engine: AStarEngine
 
-**Dosya:** `core/astar_engine.py`
+**File:** `core/astar_engine.py`
 
-**Amaç:** İki OSM düğümü arasındaki en kısa rotayı Bidirectional Hierarchical A\* algoritmasıyla bulur.
+**Purpose:** Finds the shortest route between two OSM nodes using Bidirectional Hierarchical A\*.
 
-**Katman Seçimi (`_select_layer()`):**
+**Layer Selection (`_select_layer()`):**
 
-`find_path()` çağrılır çağrılmaz, kaynak ile hedef arasındaki kuş uçuşu mesafe hesaplanır:
-- **< 5 km:** Arterial katmanda arama. Daha küçük arama uzayı.
-- **≥ 5 km:** Express katmanda arama. Sadece otoyol/trunk ağı.
-- **Fallback:** Seçilen katmanda düğüm bulunamazsa veya rota oluşturulamazsa Full grafa düşülür.
+As soon as `find_path()` is called, the straight-line distance between source and target is computed:
+- **< 5 km:** Search on the Arterial layer. Smaller search space.
+- **≥ 5 km:** Search on the Express layer. Motorway/trunk network only.
+- **Fallback:** If no node is found in the chosen layer or no route can be built, the Full graph is used.
 
-**Bidirectional A\* Çekirdeği (`_bidirectional_astar()`):**
+**Bidirectional A\* Core (`_bidirectional_astar()`):**
 
-İki ayrı arama durumu (`_SearchState`) tutulur:
-- **Forward:** Kaynaktan hedefe doğru.
-- **Backward:** Hedeften kaynağa doğru (ters graf üzerinde).
+Two separate search states (`_SearchState`) are maintained:
+- **Forward:** From source toward target.
+- **Backward:** From target toward source (on the reversed graph).
 
-Her adımda iki min-heap'in tepesindeki `f_score` karşılaştırılır; daha küçük olanın yönünden bir düğüm açılır. Bu, her iki yönün de dengeli ilerlemesini sağlar.
+At each step, the `f_score` at the top of both min-heaps is compared; a node is expanded in the direction with the smaller value. This ensures both directions advance in balance.
 
-**Buluşma ve Durma Koşulu (Pohl, 1971):**
-- Her düğüm açıldığında, o düğümün karşı yönün `g_score` sözlüğünde var olup olmadığı kontrol edilir.
-- Varsa, bu bir buluşma adayıdır: `μ = g_fwd[m] + g_bwd[m]` hesaplanır.
-- **Durma:** `f_fwd_top + f_bwd_top >= μ` koşulu sağlandığında arama kesin optimal sonuçla durur.
+**Meeting Point & Stopping Condition (Pohl, 1971):**
+- When a node is expanded, the algorithm checks whether that node exists in the opposite direction's `g_score` dictionary.
+- If it does, it is a meeting candidate: `μ = g_fwd[m] + g_bwd[m]` is computed.
+- **Stop:** When `f_fwd_top + f_bwd_top >= μ`, the search halts with a provably optimal result.
 
 **Lazy Deletion:**
 
-Python'un `heapq` modülü `decrease-key` operasyonunu desteklemez. Bunun yerine güncellenmiş düğüm heap'e yeniden `push` edilir. Eski kopya `closed set` kontrolüyle anında atılır. Bu strateji ekstra bellek kullanımına karşılık her adımda O(log n) push garantisi sağlar.
+Python's `heapq` does not support `decrease-key`. Instead, an updated node is re-pushed onto the heap. The stale copy is immediately discarded via the closed-set check. This trades a small amount of extra memory for an O(log n) push guarantee on every step.
 
-**Kenar Maliyeti (`_get_edge_cost()`):**
+**Edge Cost (`_get_edge_cost()`):**
 
-MultiDiGraph'ta aynı iki düğüm arasında birden fazla paralel kenar bulunabilir (farklı şeritler, köprüler). Her seferinde bu kenarlar arasından en düşük maliyetli seçilir. Trafik modu aktifse `TrafficManager.get_edge_multiplier()` sonucuyla çarılır. `travel_time` eksikse `length / 13.888` (50 km/s fallback) kullanılır.
+In a MultiDiGraph, multiple parallel edges may exist between the same two nodes (different lanes, bridges). The one with the lowest cost is always selected. If traffic mode is active, the result is multiplied by `TrafficManager.get_edge_multiplier()`. If `travel_time` is missing, `length / 13.888` (50 km/h fallback) is used.
 
-**Sezgisel Fonksiyon (`_default_heuristic()`):**
+**Heuristic Function (`_default_heuristic()`):**
 
-Varsayılan sezgisel Haversine mesafesini `22.22 m/s` (80 km/s) ile bölerek saniyeye çevirir. Bu değer admissible'dır — gerçek yol süresini asla aşmaz (kuş uçuşu mesafe / otoyol hızı, gerçek yol süresinin alt sınırıdır). Dışarıdan `heuristic_fn` enjekte edilirse bu fonksiyonun yerini ONNX sinir ağı alır.
+The default heuristic converts Haversine distance to seconds by dividing by `22.22 m/s` (80 km/h). This is admissible — it never overestimates actual travel time (straight-line distance / motorway speed is a lower bound on real travel time). When a `heuristic_fn` is injected from outside, the ONNX neural network replaces this function.
 
 ---
 
-### 4. Sinir Ağı Eğitimi: training/
+### 4. Neural Network Training: training/
 
-Bu klasördeki modüller, A\*'ın sezgisel fonksiyonunu öğrenen sinir ağının eğitim pipeline'ını oluşturur.
+The modules in this folder form the training pipeline for the neural network that learns the A\* heuristic function.
 
-#### dataset_builder.py — Eğitim Verisi Üretimi
+#### dataset_builder.py — Training Data Generation
 
-Gerçek A\* çalıştırılarak etiketli veri üretilir:
-- Graf üzerinde rastgele (source, target) çiftleri seçilir.
-- Her çift için A\* ile **gerçek maliyet** (saniye) hesaplanır.
-- Bu çiftin `FeatureExtractor.extract()` ile 8 boyutlu özellik vektörü çıkarılır.
-- (özellik vektörü, gerçek maliyet) ikilisi eğitim örneği olur.
+Labeled data is produced by running real A\*:
+- Random (source, target) pairs are selected on the graph.
+- For each pair, the **true cost** (in seconds) is computed with A\*.
+- An 8-dimensional feature vector is extracted using `FeatureExtractor.extract()`.
+- The (feature vector, true cost) pair becomes a training example.
 
-Mesafe bantlarına göre örnekleme yapılır (0-1 km, 1-5 km, 5-15 km, 15+ km), böylece model her mesafe aralığını dengeli öğrenir.
+Sampling is done across distance bands (0–1 km, 1–5 km, 5–15 km, 15+ km), so the model learns each distance range in a balanced way.
 
-#### model_arch.py — Model Tanımı
+#### model_arch.py — Model Definition
 
-`HeuristicNet` ve `FeatureExtractor` sınıfları bu dosyada tanımlanır (detaylar: [Model Mimarisi](#model-mimarisi-heuristicnet) bölümünde).
+The `HeuristicNet` and `FeatureExtractor` classes are defined here (details in the [Model Architecture](#model-architecture-heuristicnet) section).
 
-#### trainer.py — Eğitim Döngüsü
+#### trainer.py — Training Loop
 
-- **Optimizer:** AdamW (`lr=1e-3`, `weight_decay=1e-4`) — Adam + ağırlık çürümesi ayrıştırması.
-- **Kayıp Fonksiyonu:** Huber Loss (SmoothL1, `β=1.0`) — MSE'ye kıyasla aykırı değerlere dayanıklı; seyahat sürelerinin geniş aralığı (10s – 7200s) için idealdir.
-- **Öğrenme Oranı Planlaması:** `CosineAnnealingLR` — sabit LR'ye göre keskin minimumlardan kaçınır; eğitim sonunda LR ≈ 0'a yaklaşır.
-- **Early Stopping:** Validation loss `patience=10` epoch boyunca iyileşmezse eğitim durur.
-- **Gradient Clipping:** `max_norm=1.0` — patlayan gradyan önlemi.
-- **Normalizasyon:** Etiketler `log1p(saniye)` ile sıkıştırılır (10s → 2.4, 3600s → 8.2). Inference'da `expm1` ile geri çevrilir.
-- **Eğitim Cihazı:** Apple Silicon MPS > CUDA > CPU öncelik sırasıyla otomatik seçim.
-- **En iyi model** her epoch sonunda `models/checkpoints/best_heuristic_net.pt` olarak kaydedilir.
+- **Optimizer:** AdamW (`lr=1e-3`, `weight_decay=1e-4`) — Adam with decoupled weight decay.
+- **Loss Function:** Huber Loss (SmoothL1, `β=1.0`) — more robust to outliers than MSE; ideal for the wide range of travel times (10s–7200s).
+- **LR Scheduling:** `CosineAnnealingLR` — avoids sharp minima compared to a fixed LR; LR approaches 0 by the end of training.
+- **Early Stopping:** Training halts if validation loss does not improve for `patience=10` epochs.
+- **Gradient Clipping:** `max_norm=1.0` — prevents exploding gradients.
+- **Normalization:** Labels are compressed with `log1p(seconds)` (10s → 2.4, 3600s → 8.2). Reversed with `expm1` at inference.
+- **Training Device:** Automatically selected in priority order: Apple Silicon MPS > CUDA > CPU.
+- **Best model** is saved after every epoch as `models/checkpoints/best_heuristic_net.pt`.
 
-#### export_onnx.py — ONNX Dışa Aktarma ve Benchmark
+#### export_onnx.py — ONNX Export & Benchmark
 
-Eğitilen PyTorch modeli ONNX formatına aktarılır:
-- **Standart model:** `models/onnx/heuristic_net.onnx`
-- **INT8 kuantize model:** `models/onnx/heuristic_net_int8.onnx` (daha hızlı, hafif boyut kaybı)
+The trained PyTorch model is exported to ONNX format:
+- **Standard model:** `models/onnx/heuristic_net.onnx`
+- **INT8 quantized model:** `models/onnx/heuristic_net_int8.onnx` (faster, minor accuracy loss)
 
-5000 çalıştırmalık benchmark ile PyTorch ve ONNX Runtime süreleri karşılaştırılır. ONNX Runtime, PyTorch'a kıyasla CPU'da ~10-15x daha düşük çıkarım overhead'i sağlar.
+A 5,000-run benchmark compares PyTorch and ONNX Runtime latency. ONNX Runtime delivers ~10–15× lower inference overhead than PyTorch on CPU.
 
 ---
 
 ### 5. Neural Heuristic: NeuralHeuristic
 
-**Dosya:** `core/neural_heuristic.py`
+**File:** `core/neural_heuristic.py`
 
-**Amaç:** Eğitilmiş ONNX modelini A\* motoruna bağlayan sezgisel fonksiyon arayüzü.
+**Purpose:** The heuristic function interface that connects the trained ONNX model to the A\* engine.
 
-**Başlangıç:**
+**Initialization:**
 
-Sınıf başlatıldığında önce kuantize (`int8`) model aranır; yoksa standart model seçilir. ONNX Runtime oturumu (`InferenceSession`) CPU üzerinde başlatılır.
+When the class is instantiated, it first looks for the quantized (`int8`) model; if not found, it falls back to the standard model. An ONNX Runtime `InferenceSession` is started on CPU.
 
-**`__call__(u, v)` — Tekil Tahmin:**
+**`__call__(u, v)` — Single Prediction:**
 
-A\* her adımda `h(neighbor, target)` çağırır. Bu fonksiyon:
-1. `(u, v)` çiftini Python `dict` önbelleğinde arar → varsa O(1)'de döner.
-2. Yoksa `FeatureExtractor.extract(u, v)` ile 8 boyutlu özellik vektörü çıkarır.
-3. Vektörü ONNX Runtime'a verir → `float32` tahmin alır.
-4. `expm1(pred)` ile log ölçeğinden saniyeye geri çevirir.
-5. `max(0.0, ...)` ile admissibility garantisi verir (negatif maliyet imkânsız).
-6. Sonucu önbelleğe yazar.
+A\* calls `h(neighbor, target)` on every step. This function:
+1. Looks up the `(u, v)` pair in a Python `dict` cache → returns in O(1) if found.
+2. Otherwise, extracts an 8-dimensional feature vector with `FeatureExtractor.extract(u, v)`.
+3. Passes the vector to ONNX Runtime → receives a `float32` prediction.
+4. Converts from log scale to seconds with `expm1(pred)`.
+5. Guarantees admissibility with `max(0.0, ...)` (negative cost is impossible).
+6. Writes the result to cache.
 
-**`predict_batch(pairs)` — Toplu Tahmin:**
+**`predict_batch(pairs)` — Batch Prediction:**
 
-`RingPlanner` maliyet matrisini hesaplarken N×N çifti tek ONNX çağrısında işler. `FeatureExtractor.extract_batch()` ile vektörize özellik çıkarımı yapılır; ONNX Runtime'ın paralel işlem gücünden yararlanılır.
-
----
-
-### 6. Çok Duraklı Rota: RingPlanner
-
-**Dosya:** `core/ring_planner.py`
-
-**Amaç:** N adet kullanıcı seçimli durak arasında **en optimum geçiş sırasını** bularak kapalı (ring) veya açık rota üretir.
-
-**Problem:** Bu bir Gezgin Satıcı Problemi (TSP) örneğidir. Tam çözüm NP-hard olduğundan iki aşamalı yaklaşım uygulanır:
-
-**Aşama 1 — Maliyet Matrisi:**
-
-N×N asimetrik maliyet matrisi oluşturulur. Her `(i, j)` çifti için `NeuralHeuristic.predict_batch()` ile tahmini maliyet hesaplanır. Tüm N×(N-1) çift tek ONNX batch çağrısıyla işlenir.
-
-**Aşama 2 — Nearest Neighbor Heuristic:**
-
-Açgözlü başlangıç sıralaması üretir: Başlangıç noktasından itibaren her adımda henüz ziyaret edilmemiş en yakın noktaya git. O(N²) karmaşıklık. Optimal'den %20-25 uzak ama hızlı bir başlangıç noktası sağlar.
-
-**Aşama 3 — 2-opt Local Search:**
-
-Nearest Neighbor çıktısını iteratif olarak iyileştirir. Tüm `(i, k)` kenar çifti kombinasyonları denenir; `order[i+1..k]` segmenti tersine çevrilince maliyet düşüyorsa kabul edilir. Hiçbir iyileştirme bulunamayana veya `max_2opt_iter` (varsayılan 100) sınırına ulaşana kadar tekrar eder. Genellikle optimal'e %5 içinde ulaşır.
-
-**Açık TSP (Fixed Start & End):** Web arayüzünden gelen sabit başlangıç/bitiş noktalı açık rota isteklerinde ≤6 ara nokta için brute-force (kesin optimal), daha fazlası için Nearest Neighbor + 2-opt uygulanır (`app.py/solve_open_tsp()`).
-
-**Aşama 4 — A\* Segment Hesaplama:**
-
-Optimize edilmiş sıralamaya göre ardışık her waypoint çifti için `AStarEngine.find_path()` çağrılır. Bu, tahmini maliyet değil **gerçek yol rotası** üretir.
-
-**Aşama 5 — Segment Birleştirme:**
-
-Segment sınırlarındaki tekrar eden düğümler atılarak tüm segmentler tek kesintisiz rota listesine birleştirilir.
+When `RingPlanner` computes the cost matrix, it processes N×N pairs in a single ONNX call. Vectorized feature extraction is done with `FeatureExtractor.extract_batch()`, leveraging ONNX Runtime's parallel processing capability.
 
 ---
 
-### 7. Trafik Yönetimi: TrafficManager
+### 6. Multi-Stop Routing: RingPlanner
 
-**Dosya:** `core/traffic_manager.py`
+**File:** `core/ring_planner.py`
 
-**Amaç:** Her kenar için `travel_time` çarpanı üretir. A\* bu çarpanı kenar maliyetine uygular; tıkanan yollar daha pahalı hale gelir ve algoritma alternatif güzergahları tercih eder.
+**Purpose:** Finds the **optimal visit order** among N user-selected waypoints and produces a closed (ring) or open route.
 
-**Üç Katmanlı Trafik Modeli:**
+**Problem:** This is a Travelling Salesman Problem (TSP) instance. Since the exact solution is NP-hard, a two-phase approach is applied:
 
-**1. Saatlik Simülasyon (`_simulate_base_traffic()`):**
+**Phase 1 — Cost Matrix:**
 
-Güncel saate göre İstanbul'a özgü trafik profili uygulanır:
-- **Sabah zirvesi (07:30–09:30):** Max çarpan 3.5 (pik 08:30'da).
-- **Akşam zirvesi (17:30–20:00):** Max çarpan 4.2 (pik 18:30'da).
-- **Öğle yoğunluğu (12:00–14:00):** Sabit 1.6 çarpan.
-- **Ara saatler / gece:** 1.0–1.3 çarpan.
+An N×N asymmetric cost matrix is built. For each `(i, j)` pair, the estimated cost is computed with `NeuralHeuristic.predict_batch()`. All N×(N−1) pairs are processed in a single ONNX batch call.
 
-Yol tipine göre hassasiyet: Otoyollar %90, primary yollar %70, secondary %50, yerel yollar %20 oranında trafik dalgalanmasından etkilenir.
+**Phase 2 — Nearest Neighbor Heuristic:**
 
-**Boğaz Köprüleri ve Tüneller:** Boylam geçişi (< 29.01° ↔ > 29.01°) tespit edilir. Sabah Asya→Avrupa, akşam Avrupa→Asya yönlerinde çarpan 4.8–5.2'ye kadar çıkar. Geriye doğru tıkanıklık yayılımı: olayın olduğu kenara gelen komşular %60 oranında etkilenir.
+Produces a greedy initial ordering: starting from the origin, at each step go to the nearest unvisited point. O(N²) complexity. Produces a starting point that is ~20–25% from optimal, but fast.
 
-**2. Rastgele Olay Simülasyonu (`_generate_simulated_incidents()`):**
+**Phase 3 — 2-opt Local Search:**
 
-Her güncellemede motorway/trunk/primary yollardan rastgele 2-4 kenar seçilir:
-- **Kaza (accident):** 5.5–8.5 çarpan — A\* bu yolu neredeyse tamamen kaçınır.
-- **Yol çalışması (roadwork):** 4.0–6.0 çarpan.
+Iteratively improves the Nearest Neighbor output. All `(i, k)` edge-pair combinations are tried; if reversing the `order[i+1..k]` segment reduces cost, it is accepted. Repeats until no improvement is found or `max_2opt_iter` (default 100) is reached. Typically converges within ~5% of optimal.
 
-%30 ihtimalle eski olaylar temizlenerek yeni olaylar üretilir.
+**Open TSP (Fixed Start & End):** For open-route requests with a fixed start and end coming from the web UI, brute-force (exact optimal) is used for ≤ 6 intermediate stops; Nearest Neighbor + 2-opt is used for more (`app.py/solve_open_tsp()`).
 
-**3. TomTom Traffic Flow API (İsteğe Bağlı):**
+**Phase 4 — A\* Segment Computation:**
 
-`configs/settings.yaml` veya `TOMTOM_API_KEY` ortam değişkeni ile API anahtarı tanımlanırsa canlı moda geçilir. İstanbul'un 5 kritik noktası (15 Temmuz Köprüsü, FSM Köprüsü, Mecidiyeköy, Kadıköy E-5, Haliç Köprüsü) sorgulanır. `freeFlowSpeed / currentSpeed` oranı çarpan olarak hesaplanır ve 500 metre yarıçapındaki motorway/primary kenarlara uygulanır.
+`AStarEngine.find_path()` is called for each consecutive waypoint pair in the optimized order. This produces the **real road route**, not an estimated cost.
+
+**Phase 5 — Segment Merging:**
+
+Duplicate nodes at segment boundaries are dropped, and all segments are merged into a single continuous route list.
 
 ---
 
-### 8. Web Arayüzü: app.py + Flask
+### 7. Traffic Management: TrafficManager
 
-**Dosya:** `app.py`
+**File:** `core/traffic_manager.py`
 
-**Amaç:** Tüm bileşenleri bir araya getiren REST API sunucusu ve web arayüzü.
+**Purpose:** Produces a `travel_time` multiplier for each edge. A\* applies this multiplier to edge costs; congested roads become more expensive, and the algorithm prefers alternative routes.
 
-**Sunucu Başlangıcında Yapılanlar:**
+**Three-Layer Traffic Model:**
 
-Sunucu başladığında tek seferlik yükleme yapılır:
-1. `MapLoader` → Graf diskten yüklenir.
-2. `GraphProcessor` → Hiyerarşi ve Haversine önbelleği oluşturulur.
-3. `TrafficManager` → Trafik çarpanları ilk kez hesaplanır.
-4. İki ayrı planlayıcı hazırlanır:
+**1. Hourly Simulation (`_simulate_base_traffic()`):**
+
+An Istanbul-specific traffic profile is applied based on the current hour:
+- **Morning peak (07:30–09:30):** Max multiplier 3.5 (peak at 08:30).
+- **Evening peak (17:30–20:00):** Max multiplier 4.2 (peak at 18:30).
+- **Midday congestion (12:00–14:00):** Fixed 1.6 multiplier.
+- **Off-peak / night:** 1.0–1.3 multiplier.
+
+Sensitivity by road type: motorways are 90% sensitive to traffic fluctuation, primary roads 70%, secondary 50%, local roads 20%.
+
+**Bosphorus Bridges & Tunnels:** Cross-continental transitions (< 29.01° ↔ > 29.01° longitude) are detected. Multipliers reach 4.8–5.2 in the Asia→Europe direction during mornings and Europe→Asia during evenings. Backward congestion propagation: neighbors approaching the affected edge are impacted at 60%.
+
+**2. Random Incident Simulation (`_generate_simulated_incidents()`):**
+
+On each update, 2–4 random edges from motorway/trunk/primary roads are selected:
+- **Accident:** 5.5–8.5 multiplier — A\* almost entirely avoids this road.
+- **Roadwork:** 4.0–6.0 multiplier.
+
+Old incidents are cleared and new ones generated with 30% probability.
+
+**3. TomTom Traffic Flow API (Optional):**
+
+If an API key is set via `configs/settings.yaml` or the `TOMTOM_API_KEY` environment variable, live mode is activated. Five critical Istanbul points are queried (15 Temmuz Bridge, FSM Bridge, Mecidiyeköy, Kadıköy E-5, Haliç Bridge). The `freeFlowSpeed / currentSpeed` ratio is computed as the multiplier and applied to motorway/primary edges within a 500-metre radius.
+
+---
+
+### 8. Web Interface: app.py + Flask
+
+**File:** `app.py`
+
+**Purpose:** A REST API server and web interface that ties all components together.
+
+**On Server Startup:**
+
+A one-time initialization happens when the server starts:
+1. `MapLoader` → Graph is loaded from disk.
+2. `GraphProcessor` → Hierarchy and Haversine cache are built.
+3. `TrafficManager` → Traffic multipliers are computed for the first time.
+4. Two separate planners are prepared:
    - **Neural:** `NeuralHeuristic` + `AStarEngine` + `RingPlanner`
-   - **Haversine:** Fallback `NeuralHeuristic` (Haversine tabanlı) + `AStarEngine` + `RingPlanner`
+   - **Haversine:** Fallback `NeuralHeuristic` (Haversine-based) + `AStarEngine` + `RingPlanner`
 
-**API Uç Noktaları:**
+**API Endpoints:**
 
-| Uç Nokta | Yöntem | Açıklama |
+| Endpoint | Method | Description |
 |---|---|---|
-| `GET /` | GET | Interaktif Leaflet.js haritası |
-| `GET /api/landmarks` | GET | 10 önceden tanımlı İstanbul noktasının listesi |
-| `GET /api/traffic` | GET | Mevcut trafik segment ve olay verileri |
-| `POST /api/route` | POST | Rota hesaplama (waypoint listesi + seçenekler) |
+| `GET /` | GET | Interactive Leaflet.js map |
+| `GET /api/landmarks` | GET | List of 10 predefined Istanbul points |
+| `GET /api/traffic` | GET | Current traffic segments and incident data |
+| `POST /api/route` | POST | Route computation (waypoint list + options) |
 
-`POST /api/route` isteği şu parametreleri kabul eder:
-- `waypoints`: `[{lat, lng, name}]` listesi (en az 2 nokta)
-- `use_haversine`: `true` ise Neural yerine Haversine sezgisel kullan
-- `is_loop`: `true` ise kapalı ring rota, `false` ise açık rota
-- `start_index` / `end_index`: Açık rotada başlangıç/bitiş indeksi
-- `use_traffic`: `true` ise trafik çarpanları kenar maliyetlerine uygulanır
-
----
-
-### 9. Görselleştirme: MapRenderer
-
-**Dosya:** `visualization/map_renderer.py`
-
-**Amaç:** Hesaplanan ring rotayı Folium kullanarak interaktif HTML haritasına dönüştürür.
-
-Waypoint markerları, rota segmentleri ve isteğe bağlı trafik ısı haritası (heatmap) katmanı desteklenir. CLI modunda çıktı `output/istanbul_ring.html` olarak kaydedilir.
+The `POST /api/route` request accepts the following parameters:
+- `waypoints`: `[{lat, lng, name}]` list (minimum 2 points)
+- `use_haversine`: if `true`, uses Haversine heuristic instead of Neural
+- `is_loop`: if `true`, closed ring route; if `false`, open route
+- `start_index` / `end_index`: start/end index for open routes
+- `use_traffic`: if `true`, traffic multipliers are applied to edge costs
 
 ---
 
-## Veri Akışı (Uçtan Uca)
+### 9. Visualization: MapRenderer
+
+**File:** `visualization/map_renderer.py`
+
+**Purpose:** Converts the computed ring route into an interactive HTML map using Folium.
+
+Supports waypoint markers, route segments, and an optional traffic heat map layer. In CLI mode, the output is saved as `output/istanbul_ring.html`.
+
+---
+
+## End-to-End Data Flow
 
 ```
-1. Kullanıcı haritada nokta işaretler
+1. User pins points on the map
         │
         ▼
 2. POST /api/route → [{lat, lng, name}, ...]
         │
         ▼
-3. Her koordinat en yakın OSM düğümüne eşlenir
+3. Each coordinate is mapped to the nearest OSM node
    ox.distance.nearest_nodes(full_graph, X=lon, Y=lat)
         │
         ▼
 4. RingPlanner.plan(waypoint_nodes)
-   ├── NeuralHeuristic.predict_batch(N×N çiftler) → maliyet matrisi
-   ├── Nearest Neighbor → başlangıç sırası
-   └── 2-opt iterasyon → optimize sıra
+   ├── NeuralHeuristic.predict_batch(N×N pairs) → cost matrix
+   ├── Nearest Neighbor → initial ordering
+   └── 2-opt iterations → optimized ordering
         │
         ▼
-5. AStarEngine.find_path(src, tgt) × N segment
-   ├── Katman seçimi (mesafeye göre express/arterial)
-   ├── Bidirectional A* (NeuralHeuristic sezgisel)
+5. AStarEngine.find_path(src, tgt) × N segments
+   ├── Layer selection (express/arterial based on distance)
+   ├── Bidirectional A* (NeuralHeuristic heuristic)
    │   ├── Forward heap: source → target
-   │   └── Backward heap: target → source (ters graf)
-   ├── Pohl durma koşulu → buluşma düğümü
-   └── _reconstruct_path() → OSM düğüm listesi
+   │   └── Backward heap: target → source (reversed graph)
+   ├── Pohl stopping condition → meeting node
+   └── _reconstruct_path() → OSM node list
         │
         ▼
-6. Segment koordinatları JSON formatında döner
+6. Segment coordinates returned in JSON
         │
         ▼
-7. Leaflet.js haritada polyline olarak çizilir
+7. Leaflet.js draws polyline on the map
 ```
 
 ---
 
-## Algoritma Detayları
+## Algorithm Details
 
 ### Bidirectional A\*
 
-Klasik A\*'da arama uzayı O(b^d) düğüm açar (b: ortalama dallanma faktörü, d: derinlik). Bidirectional versiyonda her yön O(b^(d/2)) açar; toplam O(2·b^(d/2)) ≈ karesel kazanım.
+Classical A\* expands O(b^d) nodes (b: average branching factor, d: depth). The bidirectional version expands O(b^(d/2)) in each direction; total O(2·b^(d/2)) ≈ quadratic improvement.
 
-İstanbul grafında (yaklaşık 8.000 düğüm) bu, 10-50x hız farkı anlamına gelir.
+On Istanbul's graph (approximately 8,000 nodes), this translates to a 10–50× speed difference.
 
-Heap içeriği `(f_score, counter, node_id)` üçlüsüdür. `counter`, eşit f_score'lu düğümlerde deterministik FIFO sırası sağlar.
+Heap entries are `(f_score, counter, node_id)` triples. `counter` provides deterministic FIFO ordering for nodes with equal f_score.
 
-### Hiyerarşik Graf Katmanlama
+### Hierarchical Graph Layering
 
-5 km eşiği, şehir içi kısa mesafeli aramalar (arterial) ile kıtalar arası uzun mesafeli aramalar (express) arasındaki doğal ayrımdır. Express katmanı ortalama %60 daha küçük arama uzayı sunar.
+The 5 km threshold is the natural boundary between intra-city short-distance searches (arterial) and transcontinental long-distance searches (express). The Express layer offers on average ~60% smaller search space.
 
 ### Neural Heuristic
 
-Klasik Haversine sezgiselinin yerini alan sinir ağı, aynı admissibility garantisini korurken şu ek bilgileri öğrenir:
-- Kaynak ve hedef düğümlerin yol hiyerarşisindeki yeri (highway_rank)
-- Kavşak yoğunluğu (derece bilgisi)
-- Yön bilgisi (bearing) — özellikle Boğaz geçişi gibi doğu-batı yönlü rotalar için anlamlı
-- Gerçek A\* maliyetiyle eğitildiğinden İstanbul'a özgü topolojiyi öğrenir
+The neural network, which replaces the classical Haversine heuristic, preserves the same admissibility guarantee while additionally learning:
+- The road hierarchy position (highway_rank) of source and target nodes
+- Junction density (degree information)
+- Bearing — especially meaningful for east-west routes like Bosphorus crossings
+- Istanbul-specific topology, since it is trained on real A\* costs
 
-Bu sayede A\* daha isabetli düğümleri önce açar ve toplam açılan düğüm sayısını azaltır.
+This allows A\* to expand more accurate nodes first and reduces the total number of nodes explored.
 
-### TSP Çözümü: Nearest Neighbor + 2-opt
+### TSP Solution: Nearest Neighbor + 2-opt
 
-| Seçenek | Kullanım | Karmaşıklık | Kalite |
+| Option | Usage | Complexity | Quality |
 |---|---|---|---|
-| Brute-force | ≤6 ara nokta | O(n!) | Kesin optimal |
-| Nearest Neighbor | >6 ara nokta | O(n²) | Optimal'den ~%20-25 uzak |
-| 2-opt iyileştirme | Her zaman | O(n²·iter) | Optimal'e ~%5 içinde |
+| Brute-force | ≤ 6 intermediate stops | O(n!) | Exact optimal |
+| Nearest Neighbor | > 6 intermediate stops | O(n²) | ~20–25% from optimal |
+| 2-opt improvement | Always applied | O(n²·iter) | Within ~5% of optimal |
 
-### Trafik Simülasyonu
+### Traffic Simulation
 
-Trafik çarpanları `travel_time` değeriyle çarpılır. Çarpan 1.0 = serbest akış, 5.0 = ciddi yoğunluk, 8.5 = kaza/blokaj. A\* bu maliyetleri doğrudan hesaba katar; tıkanan yollar yerine alternatif güzergahlar tercih edilir.
+Traffic multipliers are multiplied by `travel_time`. Multiplier 1.0 = free flow, 5.0 = heavy congestion, 8.5 = accident/blockage. A\* incorporates these costs directly; congested roads are avoided in favor of alternative routes.
 
 ---
 
-## Özellik Mühendisliği
+## Feature Engineering
 
-Her (source, target) düğüm çifti için `FeatureExtractor` 8 boyutlu vektör üretir:
+`FeatureExtractor` produces an 8-dimensional vector for each (source, target) node pair:
 
-| İndeks | Özellik | Normalizasyon | Açıklama |
+| Index | Feature | Normalization | Description |
 |---|---|---|---|
-| [0] | Haversine mesafesi | ÷ 80,000 m | İstanbul çapı ~80 km |
-| [1] | Δlat | ÷ 2.0 | Enlem farkı |
-| [2] | Δlon | ÷ 2.0 | Boylam farkı |
-| [3] | Source düğüm derecesi | ÷ 8 | Kavşak yoğunluğu |
-| [4] | Target düğüm derecesi | ÷ 8 | Kavşak yoğunluğu |
-| [5] | Source highway_rank ortalaması | ÷ 5.0 | Yol hiyerarşisi skoru |
-| [6] | Target highway_rank ortalaması | ÷ 5.0 | Yol hiyerarşisi skoru |
-| [7] | Bearing açısı (radyan) | ÷ π | Yön bilgisi [-1, 1] |
+| [0] | Haversine distance | ÷ 80,000 m | Istanbul diameter ~80 km |
+| [1] | Δlat | ÷ 2.0 | Latitude difference |
+| [2] | Δlon | ÷ 2.0 | Longitude difference |
+| [3] | Source node degree | ÷ 8 | Junction density |
+| [4] | Target node degree | ÷ 8 | Junction density |
+| [5] | Source avg highway_rank | ÷ 5.0 | Road hierarchy score |
+| [6] | Target avg highway_rank | ÷ 5.0 | Road hierarchy score |
+| [7] | Bearing angle (radians) | ÷ π | Directional info [-1, 1] |
 
-Koordinatlar, dereceler ve highway_rank'lar başlangıçta önbelleklenir; her çıkarmada graf taranmaz.
+Coordinates, degrees, and highway_ranks are cached on initialization; the graph is not traversed on every extraction.
 
 ---
 
-## Model Mimarisi: HeuristicNet
+## Model Architecture: HeuristicNet
 
 ```
 Input(8)
@@ -475,160 +475,160 @@ ResidualBlock × 3:
 OutputHead: Linear(128→64) + GELU + Linear(64→1) + Softplus
    │
    ▼
-Output: tahmini maliyet (log1p-normalize edilmiş saniye)
+Output: estimated cost (log1p-normalized seconds)
 ```
 
-**Tasarım Kararları:**
-- **MLP (Multilayer Perceptron):** GNN alternatifinın aksine ONNX export için ek bağımlılık gerektirmez ve A\*'ın iç döngüsünde ~0.1ms inference süresi sunar (GNN'in yaklaşık 50 katı hızında).
-- **ResidualBlock:** Skip connection gradyan akışını stabilize eder. LayerNorm, BatchNorm'un küçük batch'lerde yaşadığı istatistik sorununu ortadan kaldırır. GELU, negatif bölgede yumuşak geçişiyle ReLU'ya tercih edilir.
-- **Softplus çıkış aktivasyonu:** `log(1 + e^x)` — her zaman pozitif çıktı garantisi. Maliyet negatif olamaz; ReLU'nun sıfır-gradyan bölgesinden kaçınır.
-- **Xavier başlatma:** GELU aktivasyonu için Kaiming'e göre daha stabil başlangıç ağırlıkları.
-- **Toplam parametre:** ~100K (hafif, hızlı inference için optimize).
+**Design Decisions:**
+- **MLP (Multilayer Perceptron):** Unlike a GNN alternative, requires no extra dependencies for ONNX export and delivers ~0.1 ms inference latency inside A\*'s inner loop (roughly 50× faster than a GNN).
+- **ResidualBlock:** Skip connections stabilize gradient flow. LayerNorm eliminates the statistics issues BatchNorm suffers from with small batches. GELU is preferred over ReLU for its smooth transition in the negative region.
+- **Softplus output activation:** `log(1 + e^x)` — always positive output guarantee. Cost cannot be negative; avoids the zero-gradient region of ReLU.
+- **Xavier initialization:** More stable initial weights than Kaiming for GELU activations.
+- **Total parameters:** ~100K (lightweight, optimized for fast inference).
 
 ---
 
-## Önbellekleme Stratejisi
+## Caching Strategy
 
-Sistem üç katmanlı önbellekleme kullanır:
+The system uses three-layer caching:
 
-| Katman | Sınıf | Amaç | Kalıcılık |
+| Layer | Class | Purpose | Persistence |
 |---|---|---|---|
-| **Koordinat önbelleği** | `HeuristicCache.node_coords` | Haversine hesabı için O(1) koordinat erişimi | Pickle (disk) |
-| **Haversine önbelleği** | `HeuristicCache.distance_cache` | Aynı düğüm çifti için tekrar hesaplama yok | Pickle (disk) |
-| **Neural tahmin önbelleği** | `NeuralHeuristic._pred_cache` | Aynı (u,v) için ONNX çağrısı tekrarı yok | Bellekte (uçucu) |
+| **Coordinate cache** | `HeuristicCache.node_coords` | O(1) coordinate access for Haversine | Pickle (disk) |
+| **Haversine cache** | `HeuristicCache.distance_cache` | No recomputation for the same node pair | Pickle (disk) |
+| **Neural prediction cache** | `NeuralHeuristic._pred_cache` | No repeated ONNX calls for the same (u,v) | In-memory (volatile) |
 
-`NeuralHeuristic.get_stats()` ile önbellekte isabet oranı (`hit_rate`) izlenebilir.
+Cache hit rate (`hit_rate`) can be monitored with `NeuralHeuristic.get_stats()`.
 
 ---
 
-## Kurulum ve Çalıştırma
+## Setup & Running
 
-### Gereksinimler
+### Requirements
 
 ```
 Python >= 3.10
 ```
 
-### Bağımlılıklar
+### Dependencies
 
 ```
-# Harita & Graf
+# Map & Graph
 osmnx>=1.9.0
 networkx>=3.3
 shapely>=2.0
 geopandas>=0.14
 rtree>=1.2
 
-# Yapay Zeka
-torch>=2.3          # Apple Silicon MPS desteği için
+# AI
+torch>=2.3          # Apple Silicon MPS support
 onnxruntime>=1.18
 onnx>=1.16
 
-# Web Sunucusu
+# Web Server
 flask
 flask-cors
 
-# Görselleştirme
+# Visualization
 folium>=0.17
 
-# Geliştirme
+# Development
 pytest>=8.0
 pyyaml>=6.0
 ```
 
-### Adım Adım Kurulum
+### Step-by-Step Installation
 
 ```bash
-# 1. Repoyu klonla
+# 1. Clone the repository
 git clone https://github.com/MrOzbir/istanbul-route-optimizer.git
 cd istanbul-route-optimizer
 
-# 2. Sanal ortam oluştur
+# 2. Create a virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
-# 3. Bağımlılıkları kur
+# 3. Install dependencies
 pip install osmnx networkx shapely geopandas rtree \
             torch onnxruntime onnx \
             flask flask-cors folium pyyaml pytest
 
-# 4. Veri ve model dosyalarını otomatik kur
-#    → Model ağırlıkları GitHub Releases'ten indirilir  (~2 MB)
-#    → Harita verisi OpenStreetMap'ten üretilir          (~5-15 dk)
+# 4. Automatically set up data and model files
+#    → Model weights are downloaded from GitHub Releases  (~2 MB)
+#    → Map data is generated from OpenStreetMap            (~5–15 min)
 python setup_data.py
 
-# 5. Web sunucusunu başlat
+# 5. Start the web server
 python app.py
 ```
 
-> **Not:** `setup_data.py` ilk çalıştırmada internet bağlantısı gerektirir.
-> Sonraki çalıştırmalarda dosyalar zaten mevcut olduğundan otomatik atlanır.
+> **Note:** `setup_data.py` requires an internet connection on the first run.
+> On subsequent runs, existing files are detected and skipped automatically.
 
-#### Opsiyonel: Modeli Sıfırdan Eğitmek
+#### Optional: Train the Model from Scratch
 
-Önceden eğitilmiş modeli kullanmak yerine kendi modelinizi eğitmek isterseniz:
+If you want to train your own model instead of using the pre-trained weights:
 
 ```bash
-# Sadece harita verisini indir (model indirme olmadan)
+# Download only map data (skip model download)
 python setup_data.py --skip-model
 
-# Modeli eğit (~10-30 dakika)
+# Train the model (~10–30 minutes)
 python main.py --mode train --epochs 100 --samples 800
 
-# Modeli ONNX'e aktar
+# Export model to ONNX
 python main.py --mode export --quantize
 
-# Uygulamayı başlat
+# Start the application
 python app.py
 ```
 
-### TomTom Canlı Trafik (İsteğe Bağlı)
+### TomTom Live Traffic (Optional)
 
 ```bash
-# Ortam değişkeni olarak
+# Set as an environment variable
 export TOMTOM_API_KEY="your_api_key_here"
-python main.py --mode server
+python app.py
 ```
 
-Veya `configs/settings.yaml` dosyasına:
+Or add to `configs/settings.yaml`:
 ```yaml
 tomtom_api_key: "your_api_key_here"
 ```
 
 ---
 
-## Komut Satırı Kullanımı
+## Command-Line Usage
 
 ```bash
-# Harita verisini OSMnx'ten çek
+# Fetch map data from OSMnx
 python main.py --mode fetch
 
-# Modeli eğit (özel parametre)
+# Train the model (custom parameters)
 python main.py --mode train --epochs 80 --samples 600
 
-# ONNX export + INT8 kuantizasyon + benchmark
+# ONNX export + INT8 quantization + benchmark
 python main.py --mode export --quantize
 
-# Rota hesapla ve HTML haritasına render et
+# Compute a route and render to an HTML map
 python main.py --mode route --waypoints "Taksim,Kadıköy,Beşiktaş,Üsküdar"
 
-# Klasik Haversine ile rota (neural heuristic kullanma)
+# Route with classical Haversine (no neural heuristic)
 python main.py --mode route --haversine --waypoints "Taksim,Sarıyer"
 
-# Web arayüzünü özel portta başlat
+# Start the web interface on a custom port
 python main.py --mode server --port 8080
 
-# Tüm adımları sırayla çalıştır
+# Run all steps in sequence
 python main.py --mode all
 ```
 
 ---
 
-## API Uç Noktaları
+## API Endpoints
 
 ### GET /api/landmarks
 
-Önceden tanımlı 10 İstanbul noktasını döner.
+Returns 10 predefined Istanbul points.
 
 ```json
 {
@@ -642,7 +642,7 @@ python main.py --mode all
 
 ### GET /api/traffic
 
-Mevcut trafik durumunu döner.
+Returns the current traffic state.
 
 ```json
 {
@@ -658,7 +658,7 @@ Mevcut trafik durumunu döner.
     }
   ],
   "incidents": [
-    {"id": 1, "lat": 41.04, "lng": 28.98, "type": "accident", "name": "Trafik Kazası 💥", "multiplier": 7.2}
+    {"id": 1, "lat": 41.04, "lng": 28.98, "type": "accident", "name": "Traffic Accident 💥", "multiplier": 7.2}
   ]
 }
 ```
@@ -666,7 +666,7 @@ Mevcut trafik durumunu döner.
 ### POST /api/route
 
 ```json
-// İstek
+// Request
 {
   "waypoints": [
     {"lat": 41.0369, "lng": 28.9784, "name": "Taksim"},
@@ -677,7 +677,7 @@ Mevcut trafik durumunu döner.
   "use_traffic": true
 }
 
-// Yanıt
+// Response
 {
   "success": true,
   "total_length_km": 18.4,
@@ -695,44 +695,45 @@ Mevcut trafik durumunu döner.
       "elapsed_ms": 120.1
     }
   ],
-  "optimization_log": ["Nearest Neighbor başlangıç maliyeti: 1842.3", "2-opt bitti. 4 iterasyon | final: 1788.1"]
+  "optimization_log": ["Nearest Neighbor initial cost: 1842.3", "2-opt done. 4 iterations | final: 1788.1"]
 }
 ```
 
 ---
 
-## Proje Dizin Yapısı
+## Project Directory Structure
 
 ```
 istanbul-route-optimizer/
 │
-├── main.py                     # CLI giriş noktası
-├── app.py                      # Flask web sunucusu
-├── start_up.sh                 # Hızlı başlatma betiği
+├── main.py                     # CLI entry point
+├── app.py                      # Flask web server
+├── setup_data.py               # Automated data & model setup
+├── start_up.sh                 # Quick-launch script
 │
 ├── core/
-│   ├── map_loader.py           # OSMnx harita veri çekici
-│   ├── graph_processor.py      # Hiyerarşik katmanlama + önbellek
+│   ├── map_loader.py           # OSMnx map data fetcher
+│   ├── graph_processor.py      # Hierarchical layering + cache
 │   ├── astar_engine.py         # Bidirectional Hierarchical A*
-│   ├── neural_heuristic.py     # ONNX sezgisel entegrasyon
+│   ├── neural_heuristic.py     # ONNX heuristic integration
 │   ├── ring_planner.py         # TSP: Nearest Neighbor + 2-opt
-│   └── traffic_manager.py      # Trafik simülasyon + TomTom API
+│   └── traffic_manager.py      # Traffic simulation + TomTom API
 │
 ├── training/
 │   ├── model_arch.py           # HeuristicNet + FeatureExtractor
-│   ├── dataset_builder.py      # A* ile etiketli veri üretimi
-│   ├── trainer.py              # PyTorch eğitim döngüsü
+│   ├── dataset_builder.py      # Labeled data generation via A*
+│   ├── trainer.py              # PyTorch training loop
 │   └── export_onnx.py          # ONNX export + benchmark
 │
 ├── visualization/
-│   └── map_renderer.py         # Folium HTML harita renderer
+│   └── map_renderer.py         # Folium HTML map renderer
 │
 ├── templates/
-│   └── index.html              # Leaflet.js interaktif arayüz
+│   └── index.html              # Leaflet.js interactive UI
 │
 ├── static/
-│   ├── css/                    # Arayüz stilleri
-│   └── js/                     # Arayüz JS mantığı
+│   ├── css/                    # UI styles
+│   └── js/                     # UI JavaScript logic
 │
 ├── tests/
 │   ├── test_astar_engine.py
@@ -741,27 +742,30 @@ istanbul-route-optimizer/
 │   └── test_traffic_manager.py
 │
 ├── configs/
-│   └── settings.yaml           # API anahtarları ve ayarlar
+│   └── settings.yaml           # API keys and settings
 │
 ├── data/
 │   ├── raw/                    # istanbul_main_arteries.graphml
-│   └── processed/              # Katman graflar + Haversine önbellek
+│   └── processed/              # Layer graphs + Haversine cache
 │
 ├── models/
 │   ├── checkpoints/            # best_heuristic_net.pt
 │   └── onnx/                   # heuristic_net.onnx + int8
 │
+├── scripts/
+│   └── create_release.sh       # GitHub Releases upload script
+│
 ├── logs/                       # run.log
-├── notebooks/                  # Keşif notebook'ları
+├── notebooks/                  # Exploratory notebooks
 ├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Landmark Koordinatları
+## Landmark Coordinates
 
-| İsim | Enlem | Boylam |
+| Name | Latitude | Longitude |
 |---|---|---|
 | Taksim | 41.0369 | 28.9784 |
 | Kadıköy | 40.9906 | 29.0264 |
