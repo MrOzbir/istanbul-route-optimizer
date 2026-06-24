@@ -1,3 +1,272 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2d47a976b7dfa7e6b451c11ec38a54d7633a294c99602b906b2813bd4da31e2b
-size 16793
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İstanbul Akıllı Rota Planlayıcı</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet.js Map Library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-polylineoffset@1.1.1/leaflet.polylineoffset.min.js"></script>
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3">
+</head>
+<body class="dark-theme">
+    <div id="app-container">
+        
+        <!-- Sol Kontrol Paneli (Sidebar) -->
+        <aside class="sidebar">
+            <!-- Sidebar Başlığı & Tema Seçimi -->
+            <div class="sidebar-header">
+                <div class="logo-area">
+                    <div class="logo-icon">
+                        <i class="fa-solid fa-compass-drafting"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1 data-i18n="title">İstRoute</h1>
+                        <span class="subtitle" data-i18n="subtitle">Neural A* Rota Planlayıcı</span>
+                    </div>
+                </div>
+                
+                <div class="header-controls">
+                    <!-- Dil Seçimi Dropdown -->
+                    <div class="lang-selector-wrapper">
+                        <i class="fa-solid fa-globe lang-icon"></i>
+                        <select id="lang-select" class="lang-select">
+                            <option value="tr">TR</option>
+                            <option value="en">EN</option>
+                            <option value="ar">AR (العربية)</option>
+                            <option value="bn">BN (বাংলা)</option>
+                            <option value="de">DE (Deutsch)</option>
+                            <option value="el">EL (Ελληνικά)</option>
+                            <option value="eo">EO (Esperanto)</option>
+                            <option value="es">ES (Español)</option>
+                            <option value="fa">FA (فارسی)</option>
+                            <option value="fr">FR (Français)</option>
+                            <option value="he">HE (עברית)</option>
+                            <option value="hi">HI (हिन्दी)</option>
+                            <option value="hy">HY (Հայերեն)</option>
+                            <option value="id">ID (Bahasa Indonesia)</option>
+                            <option value="it">IT (Italiano)</option>
+                            <option value="ja">JA (日本語)</option>
+                            <option value="ka">KA (ქართული)</option>
+                            <option value="ko">KO (한국어)</option>
+                            <option value="ku">KU (Kurdî)</option>
+                            <option value="mr">MR (मराठी)</option>
+                            <option value="nl">NL (Nederlands)</option>
+                            <option value="pcm">PCM (Pidgin)</option>
+                            <option value="pl">PL (Polski)</option>
+                            <option value="pt">PT (Português)</option>
+                            <option value="ru">RU (Русский)</option>
+                            <option value="sq">SQ (Shqip)</option>
+                            <option value="sv">SV (Svenska)</option>
+                            <option value="sw">SW (Kiswahili)</option>
+                            <option value="uk">UK (Українська)</option>
+                            <option value="ur">UR (اردو)</option>
+                            <option value="vi">VI (Tiếng Việt)</option>
+                            <option value="zh">ZH (中文)</option>
+                        </select>
+                    </div>
+
+                    <!-- Tema Butonu (Açık/Koyu Tema) -->
+                    <button id="theme-toggle" class="theme-btn" title="Temayı Değiştir" aria-label="Temayı Değiştir">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-content">
+                <!-- Koordinat Ekleme Paneli -->
+                <section class="section">
+                    <h2 class="section-title" data-i18n="addLocation">
+                        <i class="fa-solid fa-map-pin"></i> Konum Ekle
+                    </h2>
+                    <p class="section-desc" data-i18n="locationDesc">Haritadan bir noktaya tıklayın veya enlem/boylam girin:</p>
+                    
+                    <div class="coordinate-input-group">
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-location-crosshairs input-icon"></i>
+                            <input type="text" id="coord-input" placeholder="Örn: 41.0369, 28.9784" autocomplete="off">
+                        </div>
+                        <button id="add-coord-btn" class="btn btn-primary" title="Konumu Listeye Ekle" data-i18n="addButton">
+                            <i class="fa-solid fa-plus"></i> Ekle
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Favori Konumlar -->
+                <section class="section">
+                    <h2 class="section-title" data-i18n="popularLocations">
+                        <i class="fa-solid fa-star"></i> Favori Konumlar
+                    </h2>
+                    <div class="search-wrapper" style="position: relative; margin-top: 2px; margin-bottom: 2px;">
+                        <i class="fa-solid fa-magnifying-glass search-icon" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 12px;"></i>
+                        <input type="text" id="fav-search-input" placeholder="Favorilerde ara..." style="width: 100%; padding: 8px 12px 8px 32px; border-radius: 8px; border: 1px solid var(--border-glass); background: var(--card-bg); color: var(--text-primary); font-size: 12px; outline: none; transition: all 0.3s;" oninput="filterFavorites()" onfocus="this.style.borderColor='var(--border-focus)'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.15)';" onblur="this.style.borderColor='var(--border-glass)'; this.style.boxShadow='none';">
+                    </div>
+                    <div id="favorites-shortcuts" class="landmarks-container">
+                        <span class="loading-inline"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</span>
+                    </div>
+                </section>
+                
+                <!-- Uğranacak Konumlar Listesi -->
+                <section class="section">
+                    <div class="section-header-flex">
+                        <h2 class="section-title">
+                            <i class="fa-solid fa-list-ol"></i> <span data-i18n="waypointsTitle">Uğranacak Konumlar</span>
+                            <span id="waypoints-count" class="badge">0</span>
+                        </h2>
+                        <button id="clear-all-btn" class="btn-text" title="Tüm listeyi temizle" data-i18n="clearAll">
+                            Tümünü Sil
+                        </button>
+                    </div>
+                    
+                    <div id="waypoints-list-container" class="waypoints-list-container">
+                        <div id="empty-state" class="empty-state">
+                            <i class="fa-solid fa-route empty-icon"></i>
+                            <p data-i18n="emptyStateText">Henüz konum eklenmedi.</p>
+                            <span class="instruction" data-i18n="emptyStateSub">Haritaya tıklayarak veya yukarıdan koordinat girerek ilk konumunuzu ekleyin.</span>
+                        </div>
+                        <ul id="waypoint-list" class="waypoint-list">
+                            <!-- JS ile dinamik doldurulacak -->
+                        </ul>
+                    </div>
+                </section>
+                
+                <!-- Rota Ayarları & Çalıştırma -->
+                <section class="section section-action">
+                    <h2 class="section-title" data-i18n="settingsTitle">
+                        <i class="fa-solid fa-gears"></i> Optimizasyon Ayarları
+                    </h2>
+                    
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <span class="setting-label" data-i18n="heuristicLabel">Algoritma Sezgisel (Heuristic)</span>
+                            <div class="toggle-switch-container">
+                                <label class="switch-label">
+                                    <input type="checkbox" id="heuristic-toggle">
+                                    <span class="switch-slider"></span>
+                                </label>
+                                <span id="heuristic-status" class="heuristic-text">Neural Heuristic (ONNX)</span>
+                            </div>
+                        </div>
+                        <div class="setting-row" style="margin-top: 12px; border-top: 1px solid var(--border-glass); padding-top: 12px;">
+                            <span class="setting-label" data-i18n="routeModeLabel">Rota Modu</span>
+                            <div class="toggle-switch-container">
+                                <label class="switch-label">
+                                    <input type="checkbox" id="loop-toggle" checked>
+                                    <span class="switch-slider"></span>
+                                </label>
+                                <span id="loop-status" class="heuristic-text">Başladığın Yere Dön (Çembersel)</span>
+                            </div>
+                        </div>
+                        <!-- İnternet Bağlantısı Uyarısı -->
+                        <div id="offline-warning-box" class="offline-warning hide" style="margin-top: 12px; border-top: 1px solid var(--border-glass); padding-top: 12px;">
+                            <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+                            <span data-i18n="offlineWarningText">Şu an internete bağlı olmadığınız için canlı trafik verisi ile arama yaparsanız aktif sonuca ulaşamayabilirsiniz.</span>
+                        </div>
+                        <div class="setting-row" style="margin-top: 12px; border-top: 1px solid var(--border-glass); padding-top: 12px;">
+                            <span class="setting-label" data-i18n="trafficOverlayLabel">Canlı Trafik Katmanı</span>
+                            <div class="toggle-switch-container">
+                                <label class="switch-label">
+                                    <input type="checkbox" id="traffic-overlay-toggle">
+                                    <span class="switch-slider"></span>
+                                </label>
+                                <span id="traffic-overlay-status" class="heuristic-text">Trafiği Gizle</span>
+                            </div>
+                        </div>
+                        <div class="setting-row" style="margin-top: 12px; border-top: 1px solid var(--border-glass); padding-top: 12px;">
+                            <span class="setting-label" data-i18n="trafficRouteLabel">Trafik Duyarlı Rotalama</span>
+                            <div class="toggle-switch-container">
+                                <label class="switch-label">
+                                    <input type="checkbox" id="traffic-route-toggle">
+                                    <span class="switch-slider"></span>
+                                </label>
+                                <span id="traffic-route-status" class="heuristic-text">En Hızlı Yol (Trafiksiz)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="optimize-btn" class="btn btn-action" disabled data-i18n="optimizeBtn">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Rotayı Optimize Et
+                    </button>
+                </section>
+                
+                <!-- İstatistik Kartları (Başlangıçta Gizli) -->
+                <section id="stats-panel" class="section stats-panel hide">
+                    <h2 class="section-title" data-i18n="analysisTitle">
+                        <i class="fa-solid fa-chart-simple"></i> Rota Analizi
+                    </h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stats-card">
+                            <div class="stats-icon"><i class="fa-solid fa-road"></i></div>
+                            <div class="stats-info">
+                                <span class="stats-label" data-i18n="distanceLabel">Toplam Mesafe</span>
+                                <span id="stat-distance" class="stats-value">0.00 km</span>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-icon"><i class="fa-solid fa-clock"></i></div>
+                            <div class="stats-info">
+                                <span class="stats-label" data-i18n="durationLabel">Tahmini Süre</span>
+                                <span id="stat-duration" class="stats-value">0 dk</span>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                            <div class="stats-info">
+                                <span class="stats-label" data-i18n="timeLabel">Optimizasyon Süresi</span>
+                                <span id="stat-time" class="stats-value">0 ms</span>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <div class="stats-icon"><i class="fa-solid fa-layer-group"></i></div>
+                            <div class="stats-info">
+                                <span class="stats-label" data-i18n="segmentsLabel">Segment Sayısı</span>
+                                <span id="stat-segments" class="stats-value">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 2-opt Log Detayları -->
+                    <div class="log-details-wrapper">
+                        <button id="toggle-logs-btn" class="btn-accordion">
+                            <span><i class="fa-solid fa-code"></i> <span data-i18n="logsButton">Optimizasyon Logları (2-opt)</span></span>
+                            <i class="fa-solid fa-chevron-down chevron-icon"></i>
+                        </button>
+                        <div id="optimization-logs" class="logs-container hide">
+                            <ul id="log-list" class="log-list">
+                                <!-- Dinamik loglar -->
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </aside>
+        
+        <!-- Harita Alanı -->
+        <main class="map-view">
+            <div id="map"></div>
+            
+            <!-- Harita Üzerindeki Pratik Bilgi Overlay -->
+            <div class="map-overlay-info">
+                <p><i class="fa-solid fa-circle-info"></i> <span data-i18n="mapOverlay">Haritaya <strong>tıklayarak</strong> doğrudan koordinat alabilir, ardından <strong>"Ekle"</strong> ile uğranacak yerlere ekleyebilirsiniz.</span></p>
+            </div>
+        </main>
+        
+    </div>
+    
+    <!-- Custom Application Logic -->
+    <script src="{{ url_for('static', filename='js/main.js') }}?v=3"></script>
+</body>
+</html>
