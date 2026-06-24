@@ -1,0 +1,58 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Test & linting cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OSMnx tile cache (otomatik yeniden üretilir)
+cache/
+
+# Build çıktıları
+output/
+
+# Log dosyaları
+logs/*.log
+
+# Büyük veri dosyaları — OSMnx ile yeniden üretilir (setup_data.py)
+data/raw/
+data/processed/*.graphml
+data/processed/heuristic_cache.pkl
+
+# training_dataset.pkl küçük (< 100 KB) olduğu için GitHub'da izlenir
+# Eğer yeniden üretmek isterseniz: python setup_data.py --skip-model
+
+# Model ağırlıkları — GitHub Releases'ten indirilir (setup_data.py)
+# Release: https://github.com/MrOzbir/istanbul-route-optimizer/releases
+models/checkpoints/*.pt
+models/onnx/*.onnx
+models/onnx/*.onnx.data
+
+# Jupyter notebook checkpoint'leri
+.ipynb_checkpoints/
+
+# Ortam değişkenleri
+.env
+.env.*

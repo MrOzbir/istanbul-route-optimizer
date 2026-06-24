@@ -425,6 +425,27 @@ body {
     transform: scale(1.15);
 }
 
+.fav-edit-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 10px;
+    opacity: 0.6;
+}
+
+.fav-edit-btn:hover {
+    color: var(--primary-color) !important;
+    opacity: 1;
+    transform: scale(1.15);
+}
+
 .loading-inline {
     font-size: 12px;
     color: var(--text-muted);

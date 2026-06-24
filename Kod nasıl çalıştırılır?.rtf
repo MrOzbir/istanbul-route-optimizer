@@ -1,18 +1,0 @@
-Projenizi çalıştırmak için kullanabileceğiniz iki farklı yöntem bulunmaktadır:
-
-Yöntem 1: Klasör İçerisinde Çift Tıklayarak (Tek Tıkla Başlatma - Önerilen)
-Sizin için proje kök dizinine macOS uyumlu çift tıklanabilir bir başlatıcı hazırladım.
-	1	Proje klasörünü (istanbul-route-optimizer) açın.
-	2	Baslat.command isimli dosyaya çift tıklayın.
-	3	Bu dosya otomatik olarak terminali açacak, sanal ortamı (.venv) aktif hale getirecek, Flask sunucusunu başlatacak ve tarayıcınızda http://127.0.0.1:5001 adresini otomatik olarak açacaktır.
-
-Yöntem 2: Terminal Aracılığıyla Çalıştırma (Manuel)
-Eğer terminal üzerinden adım adım kontrol ederek çalıştırmak isterseniz:
-
-
-	1	Terminali Açın ve proje klasörünün içine gidin: bash cd /Users/kutay/Desktop/istanbul-route-optimizer   
-	2	Sanal Ortamı Aktif Edin: bash source .venv/bin/activate   
-	3	Web Arayüzünü/Sunucusunu Başlatın: bash python main.py --mode server 																																											 
-	4	Sunucu başladıktan sonra tarayıcınızdan http://127.0.0.1:5001 adresini açabilirsiniz. Sunucuyu durdurmak için terminalde Ctrl + C kombinasyonunu kullanabilirsiniz.
-
-  5 Alternatif: Komut Satırından Rota Hesaplama (CLI): Arayüzü kullanmadan doğrudan terminalden rota hesaplayıp harita çıktısı almak isterseniz: bash python main.py --mode route --waypoints "Taksim,Kadıköy,Beşiktaş,Üsküdar"      Bu komut rotayı hesaplar ve output/istanbul_ring.html olarak statik harita çıktısını kaydeder.
