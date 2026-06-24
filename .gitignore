@@ -36,14 +36,19 @@ output/
 # Log dosyaları
 logs/*.log
 
-# Büyük veri dosyaları (LFS ile izlenir)
+# Büyük veri dosyaları — OSMnx ile yeniden üretilir (setup_data.py)
 data/raw/
 data/processed/*.graphml
-data/processed/*.pkl
+data/processed/heuristic_cache.pkl
 
-# Model checkpoint'leri (LFS ile izlenir)
+# training_dataset.pkl küçük (< 100 KB) olduğu için GitHub'da izlenir
+# Eğer yeniden üretmek isterseniz: python setup_data.py --skip-model
+
+# Model ağırlıkları — GitHub Releases'ten indirilir (setup_data.py)
+# Release: https://github.com/MrOzbir/istanbul-route-optimizer/releases
 models/checkpoints/*.pt
 models/onnx/*.onnx
+models/onnx/*.onnx.data
 
 # Jupyter notebook checkpoint'leri
 .ipynb_checkpoints/

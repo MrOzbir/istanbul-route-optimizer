@@ -539,26 +539,47 @@ pyyaml>=6.0
 ### Adım Adım Kurulum
 
 ```bash
-# 1. Sanal ortam oluştur
+# 1. Repoyu klonla
+git clone https://github.com/MrOzbir/istanbul-route-optimizer.git
+cd istanbul-route-optimizer
+
+# 2. Sanal ortam oluştur
 python3 -m venv .venv
 source .venv/bin/activate
 
-# 2. Bağımlılıkları kur
+# 3. Bağımlılıkları kur
 pip install osmnx networkx shapely geopandas rtree \
             torch onnxruntime onnx \
             flask flask-cors folium pyyaml pytest
 
-# 3. Harita verisini çek (ilk kez, ~2-5 dakika sürer)
-python main.py --mode fetch
+# 4. Veri ve model dosyalarını otomatik kur
+#    → Model ağırlıkları GitHub Releases'ten indirilir  (~2 MB)
+#    → Harita verisi OpenStreetMap'ten üretilir          (~5-15 dk)
+python setup_data.py
 
-# 4. Modeli eğit (isteğe bağlı, ~10-30 dakika)
+# 5. Web sunucusunu başlat
+python app.py
+```
+
+> **Not:** `setup_data.py` ilk çalıştırmada internet bağlantısı gerektirir.
+> Sonraki çalıştırmalarda dosyalar zaten mevcut olduğundan otomatik atlanır.
+
+#### Opsiyonel: Modeli Sıfırdan Eğitmek
+
+Önceden eğitilmiş modeli kullanmak yerine kendi modelinizi eğitmek isterseniz:
+
+```bash
+# Sadece harita verisini indir (model indirme olmadan)
+python setup_data.py --skip-model
+
+# Modeli eğit (~10-30 dakika)
 python main.py --mode train --epochs 100 --samples 800
 
-# 5. Modeli ONNX'e aktar
+# Modeli ONNX'e aktar
 python main.py --mode export --quantize
 
-# 6. Web sunucusunu başlat
-python main.py --mode server
+# Uygulamayı başlat
+python app.py
 ```
 
 ### TomTom Canlı Trafik (İsteğe Bağlı)

@@ -2293,6 +2293,17 @@ async function optimizeRoute() {
             statsPanel.classList.remove('hide');
             drawRoute(data.segments, data.waypoints_ordered);
             
+            // Optimize edilmiş sırayı state.waypoints'e yansıt
+            // Böylece sidebar listesi de doğru numaralandırma ile güncellenir
+            state.waypoints = data.waypoints_ordered.map(wp => ({
+                lat: wp.lat,
+                lng: wp.lng,
+                name: wp.name
+            }));
+            state.startIndex = 0;
+            state.endIndex = state.isLoop ? 0 : state.waypoints.length - 1;
+            updateWaypointList();
+            
         } else {
             alert(`${translations[lang].alertOptError}${data.error}`);
         }
