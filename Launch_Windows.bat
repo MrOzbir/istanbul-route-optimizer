@@ -12,16 +12,30 @@ echo.
 :: Move to the script's own directory
 cd /d "%~dp0"
 
-:: 1. Check virtual environment
-if not exist ".venv\Scripts\activate.bat" (
-    echo ERROR: .venv folder not found!
-    echo Please set up the virtual environment first:
-    echo   python -m venv .venv
-    echo   .venv\Scripts\activate
-    echo   pip install osmnx networkx torch onnxruntime onnx flask flask-cors folium
+:: ── Python kontrolü ──────────────────────────────────────
+where python >nul 2>&1
+if errorlevel 1 (
+    echo ERROR: Python bulunamadi!
+    echo Python 3.10+ adresinden kurun: https://www.python.org
     echo.
     pause
     exit /b 1
+)
+
+:: ── .venv yoksa setup_env.py ile otomatik kur ────────────
+if not exist ".venv\Scripts\python.exe" (
+    echo.
+    echo Sanal ortam (.venv) bulunamadi.
+    echo Otomatik kurulum baslatiliyor (setup_env.py)...
+    echo Bu islem internet baglantisina gore 5-20 dakika surebilir.
+    echo.
+    python setup_env.py
+    if errorlevel 1 (
+        echo.
+        echo ERROR: Otomatik kurulum basarisiz. Hata mesajlarini inceleyin.
+        pause
+        exit /b 1
+    )
 )
 
 :: Activate virtual environment

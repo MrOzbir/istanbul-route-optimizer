@@ -503,6 +503,84 @@ Cache hit rate (`hit_rate`) can be monitored with `NeuralHeuristic.get_stats()`.
 
 ## Setup & Running
 
+### Automated Setup (Recommended)
+
+The easiest way to get started. No manual environment setup needed.
+
+#### macOS
+```bash
+# Double-click Launch_macOS.command in Finder
+# OR from terminal:
+bash Launch_macOS.command
+```
+
+#### Linux
+```bash
+bash Launch_Linux.sh
+```
+
+#### Windows
+```
+Double-click Launch_Windows.bat
+```
+
+**What happens automatically:**
+1. Checks if Python 3.10+ is installed on the system
+2. Creates a `.venv` virtual environment if it doesn't exist
+3. Checks every required library — installs missing ones via `pip`
+4. Downloads model weights from GitHub Releases (~2 MB)
+5. Fetches Istanbul map data from OpenStreetMap (~5–15 min, first run only)
+6. Starts the Flask server and opens the browser
+
+> **Note:** On the very first run, the automated setup may take **5–20 minutes** depending on your internet connection. Subsequent launches are instant — already-installed libraries and downloaded data are detected and skipped.
+
+---
+
+#### Manual Setup (Alternative)
+
+If you prefer full control over the environment:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/MrOzbir/istanbul-route-optimizer.git
+cd istanbul-route-optimizer
+
+# 2. Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Download data and model files
+python setup_data.py
+
+# 5. Start the server
+python app.py
+```
+
+---
+
+#### setup_env.py — Standalone Environment Script
+
+You can also run the environment setup script independently:
+
+```bash
+python setup_env.py              # Full setup (venv + libraries + data download)
+python setup_env.py --skip-data  # Only install libraries, skip map/model download
+```
+
+`setup_env.py` does the following:
+- **Python check:** Verifies Python >= 3.10
+- **Virtual env:** Creates `.venv` if it doesn't exist
+- **Library audit:** Tests each package with `import` — only installs what's missing
+- **Data setup:** Optionally calls `setup_data.py` to download map and model files
+
+> **Note:** `setup_data.py` also contains an early dependency check. If it detects missing libraries, it will print a clear error message and direct you to run `setup_env.py` first.
+
+> **Note:** `setup_data.py` requires an internet connection on the first run.
+> On subsequent runs, existing files are detected and skipped automatically.
+
 ### Requirements
 
 ```
@@ -709,7 +787,11 @@ istanbul-route-optimizer/
 ├── main.py                     # CLI entry point
 ├── app.py                      # Flask web server
 ├── setup_data.py               # Automated data & model setup
-├── start_up.sh                 # Quick-launch script
+├── setup_env.py                # Automated environment & library setup
+├── requirements.txt            # Python dependencies
+├── Launch_macOS.command        # macOS double-click launcher (auto-setup)
+├── Launch_Linux.sh             # Linux launcher (auto-setup)
+├── Launch_Windows.bat          # Windows launcher (auto-setup)
 │
 ├── core/
 │   ├── map_loader.py           # OSMnx map data fetcher

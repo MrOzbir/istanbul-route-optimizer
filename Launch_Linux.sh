@@ -9,19 +9,45 @@ echo "============================================="
 echo "   Istanbul Route Optimizer — Starting..."
 echo "============================================="
 
-# 1. Check virtual environment
-if [ -d ".venv" ]; then
-    source .venv/bin/activate
+# ── Sistem Python'u bul ───────────────────────────────────
+SYS_PYTHON=""
+if command -v python3 &>/dev/null; then
+    SYS_PYTHON="python3"
+elif command -v python &>/dev/null; then
+    SYS_PYTHON="python"
 else
+    echo "ERROR: Python bulunamadı!"
+    echo "Sisteminize Python 3.10+ kurun (apt/dnf/snap)."
     echo ""
-    echo "ERROR: .venv folder not found!"
-    echo "Please set up the virtual environment first:"
-    echo "  python3 -m venv .venv && source .venv/bin/activate"
-    echo "  pip install osmnx networkx torch onnxruntime onnx flask flask-cors folium"
-    echo ""
-    read -p "Press Enter to exit..."
-    exit 1
+    read -p "Press Enter to exit..." ; exit 1
 fi
+
+# ── .venv yoksa setup_env.py ile otomatik kur ─────────────
+if [ ! -d ".venv" ] || [ ! -f ".venv/bin/python3" ] && [ ! -f ".venv/bin/python" ]; then
+    echo ""
+    echo "Sanal ortam (.venv) bulunamadı."
+    echo "Otomatik kurulum başlatılıyor (setup_env.py)..."
+    echo "Bu işlem internet bağlantısına göre 5-20 dakika sürebilir."
+    echo ""
+    "$SYS_PYTHON" setup_env.py
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "ERROR: Otomatik kurulum başarısız."
+        read -p "Press Enter to exit..." ; exit 1
+    fi
+fi
+
+# ── .venv Python binary'ini seç ───────────────────────────
+PYTHON_BIN=""
+if [ -f ".venv/bin/python3" ]; then
+    PYTHON_BIN=".venv/bin/python3"
+elif [ -f ".venv/bin/python" ]; then
+    PYTHON_BIN=".venv/bin/python"
+else
+    PYTHON_BIN="$SYS_PYTHON"
+fi
+
+source .venv/bin/activate 2>/dev/null || true
 
 # 2. Check data files and download/generate if missing
 if [ ! -f "models/checkpoints/best_heuristic_net.pt" ] || \
@@ -30,7 +56,7 @@ if [ ! -f "models/checkpoints/best_heuristic_net.pt" ] || \
     echo "Data files not found. Running setup_data.py..."
     echo "(This may take 5-15 minutes on first run)"
     echo ""
-    python setup_data.py
+    "$PYTHON_BIN" setup_data.py
 fi
 
 # 3. Detect default browser and open automatically after 2 seconds
@@ -52,4 +78,4 @@ echo ""
 echo "Server starting at: http://127.0.0.1:5001"
 echo "Press Ctrl+C to stop."
 echo ""
-python app.py
+"$PYTHON_BIN" app.py

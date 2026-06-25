@@ -12,46 +12,49 @@ echo "============================================="
 echo ""
 
 # 1. Check virtual environment
-PYTHON_BIN=""
-
-if [ -d ".venv" ]; then
-    # Prefer the venv Python directly (works even without source activate)
-    if [ -f ".venv/bin/python3" ]; then
-        PYTHON_BIN=".venv/bin/python3"
-    elif [ -f ".venv/bin/python" ]; then
-        PYTHON_BIN=".venv/bin/python"
-    fi
-
-    # Also activate so sub-processes inherit the env
-    source .venv/bin/activate 2>/dev/null || true
+# ── Sistem Python'u bul ───────────────────────────────────
+SYS_PYTHON=""
+if command -v python3 &>/dev/null; then
+    SYS_PYTHON="python3"
+elif command -v python &>/dev/null; then
+    SYS_PYTHON="python"
+else
+    echo "ERROR: Python bulunamadı!"
+    echo "Python 3.10+ adresinden kurun: https://www.python.org"
+    echo ""
+    echo "Press Enter to close..."
+    read
+    exit 1
 fi
 
-# Fallback: use system python3
-if [ -z "$PYTHON_BIN" ]; then
-    if command -v python3 &>/dev/null; then
-        PYTHON_BIN="python3"
-    elif command -v python &>/dev/null; then
-        PYTHON_BIN="python"
-    else
-        echo "ERROR: Python not found!"
-        echo "Please install Python 3.10+ from https://www.python.org"
+# ── .venv yoksa setup_env.py ile otomatik kur ─────────────
+if [ ! -d ".venv" ] || [ ! -f ".venv/bin/python3" ] && [ ! -f ".venv/bin/python" ]; then
+    echo ""
+    echo "Sanal ortam (.venv) bulunamadı."
+    echo "Otomatik kurulum başlatılıyor (setup_env.py)..."
+    echo "Bu işlem internet bağlantısına göre 5-20 dakika sürebilir."
+    echo ""
+    "$SYS_PYTHON" setup_env.py
+    if [ $? -ne 0 ]; then
         echo ""
+        echo "ERROR: Otomatik kurulum başarısız. Hata mesajlarını inceleyin."
         echo "Press Enter to close..."
         read
         exit 1
     fi
 fi
 
-if [ -z "$(ls .venv/bin/ 2>/dev/null)" ]; then
-    echo "ERROR: .venv folder not found or empty!"
-    echo "Please set up the virtual environment first:"
-    echo "  python3 -m venv .venv && source .venv/bin/activate"
-    echo "  pip install -r requirements.txt   (or follow README.md)"
-    echo ""
-    echo "Press Enter to close..."
-    read
-    exit 1
+# ── .venv Python binary'ini seç ───────────────────────────
+PYTHON_BIN=""
+if [ -f ".venv/bin/python3" ]; then
+    PYTHON_BIN=".venv/bin/python3"
+elif [ -f ".venv/bin/python" ]; then
+    PYTHON_BIN=".venv/bin/python"
+else
+    PYTHON_BIN="$SYS_PYTHON"
 fi
+
+source .venv/bin/activate 2>/dev/null || true
 
 echo "Python  : $($PYTHON_BIN --version 2>&1)"
 echo "Project : $SCRIPT_DIR"
